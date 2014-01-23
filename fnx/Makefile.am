@@ -9,13 +9,15 @@ cc_sources = APNSFeedbackThread.cpp APNSNotificationThread.cpp \
 	UtilityFunctions.cpp
 
 
-library_includedir=$(includedir)/$(GENERIC_LIBRARY_NAME)
-library_include_HEADERS = $(h_sources)
+#library_includedir=$(includedir)/@PACKAGE_NAME@
+#library_include_HEADERS = $(h_sources)
 
 AM_CPPFLAGS = -I$(top_srcdir)
 
 lib_LTLIBRARIES=libfnx.la
 libfnx_la_SOURCES= $(h_sources) $(cc_sources)
-libfnx_la_LDFLAGS= -version-info $(GENERIC_LIBRARY_VERSION) -release $(GENERIC_RELEASE)
+libfnx_la_LDFLAGS= -release @PACKAGE_VERSION@
+pkginclude_HEADERS = $(h_sources)
+
 
 rebuild: clean all
