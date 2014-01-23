@@ -11,22 +11,30 @@
 
 namespace fnx {
 	class NotificationPayload {
+    public:
+        enum DeviceType {
+            IOS,
+            ANDROID
+        };
 	private:
+        void iosBuild();
+        void androidBuild();
 		void build();
 	protected:
 		std::string _soundName;
 		std::string msg;
 		std::string devToken;
 		int _badgeNumber;
-		std::string jsonRepresentation;
+		std::string msgCloudRepresentation;
+        DeviceType deviceType;
 	public:
 		NotificationPayload();
-		NotificationPayload(const std::string &devToken_, const std::string &_message, int badgeNumber = 1, const std::string &sndName = "pmm.caf");
+		NotificationPayload(DeviceType devType, const std::string &devToken_, const std::string &_message, int badgeNumber = 1, const std::string &sndName = "pmm.caf");
 		NotificationPayload(const NotificationPayload &n);
 		~NotificationPayload();
 		
 		
-		const std::string &toJSON() const;
+		const std::string &toCloudFormat() const;
 		std::string &soundName();
 		const std::string &soundName() const;
 		std::string &message();

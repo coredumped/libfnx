@@ -114,8 +114,8 @@ AC_CHECK_LIB(pthread, pthread_create, [
         AC_CHECK_LIB(pthread, pthread_attr_init, [
                 AC_CHECK_FUNCS(pthread_self, [
                         threads_library="POSIX Threads (pthreads)"
-                        ENABLE_XVR2_POSIX_THREADS_SUPPORT=1
-                        AC_SUBST(ENABLE_XVR2_POSIX_THREADS_SUPPORT)
+                        ENABLE_FNX_POSIX_THREADS_SUPPORT=1
+                        AC_SUBST(ENABLE_FNX_POSIX_THREADS_SUPPORT)
                 ],[
                         AC_MSG_RESULT([ !!! Posix Threads are not supported in this platform !!! ])
                         exit 1;
@@ -138,20 +138,12 @@ fi
 dnl --------------------------------------------------------------
 dnl Verify that SQLite development files are already installed
 dnl --------------------------------------------------------------
-SQLITE_INCLUDES=""
-SQLITE_CFLAGS=""
-SQLITE_LIBDIR=""
-SQLITE_LIBS=""
-SQLITE_DRIVER_ENABLED=no
-SQLITE_DRIVER_DIR=""
-
-AC_CHECK_HEADERS(sqlite3.h, [
-        FNX_SQLITE_ENABLED=yes
-        LIBS="$LIBS -lsqlite3"
-])
-
-AC_SUBST(SQLITE_DRIVER_DIR)
-AC_SUBST(SQLITE_LIBS)
+#FNX_SQLITE_ENABLED=yes
+#
+#AC_CHECK_HEADERS(sqlite3.h, [
+#        FNX_SQLITE_ENABLED=yes
+#        LIBS="$LIBS -lsqlite3"
+#])
 
 dnl -----------------------------------------------
 dnl Generates Makefile's, configuration files and scripts
@@ -160,4 +152,3 @@ dnl -----------------------------------------------
 AC_OUTPUT(Makefile \
         fnx/Makefile
 )
-

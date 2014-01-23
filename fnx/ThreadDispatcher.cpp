@@ -32,10 +32,6 @@ namespace fnx {
 		pthread_attr_init(&attr);
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 		if(stackSize > 1024){
-			//pthread_attr_getstacksize(&attr, &stackSize);
-			/*mout.lock();
-			 std::cerr << "Creating thread " << (long)&theThread << " with " << stackSize << " stack size" << std::endl;
-			 mout.unlock();*/
 			pthread_attr_setstacksize(&attr, stackSize);
 		}
 		pthread_t *ptr = &theThread;

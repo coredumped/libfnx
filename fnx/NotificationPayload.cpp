@@ -6,6 +6,7 @@
 //
 #include "NotificationPayload.h"
 #include "UtilityFunctions.h"
+#include "GenericException.h"
 #include <iostream>
 #include <sstream>
 #ifndef MAXPAYLOAD_SIZE
@@ -62,12 +63,13 @@ namespace fnx {
 		attempts = 0;
 	}
 	
-	NotificationPayload::NotificationPayload(const std::string &devToken_, const std::string &_message, int badgeNumber, const std::string &sndName){
+	NotificationPayload::NotificationPayload(DeviceType devType, const std::string &devToken_, const std::string &_message, int badgeNumber, const std::string &sndName){
 		msg = _message;
 		_soundName = sndName;
 		devToken = devToken_;
 		_badgeNumber = badgeNumber;
 		attempts = 0;
+        deviceType = devType;
 		build();
 	}
 	
@@ -83,8 +85,8 @@ namespace fnx {
 	NotificationPayload::~NotificationPayload(){
 		
 	}
-	
-	void NotificationPayload::build(){
+    
+    void NotificationPayload::iosBuild() {
 		std::stringstream jsonbuilder;
 		std::string encodedMsg = msg;
 		msg_encode(encodedMsg);
@@ -114,13 +116,32 @@ namespace fnx {
 			jsonbuilder << "\"sound\":\"" << _soundName << "\"";
 			if(_badgeNumber > 0) jsonbuilder << ",\"badge\":" << _badgeNumber;
 			jsonbuilder << "}";
-			jsonbuilder << "}";			
+			jsonbuilder << "}";
 		}
-		jsonRepresentation = jsonbuilder.str();
+		msgCloudRepresentation = jsonbuilder.str();
+        
+    }
+    
+    void NotificationPayload::androidBuild() {
+        throw GenericException("Unable to build Android notification payloads, the functionality has not been implemented.");
+    }
+	
+	void NotificationPayload::build(){
+        switch (deviceType) {
+            case IOS:
+                iosBuild();
+                break;
+            case ANDROID:
+                androidBuild();
+                break;
+            default:
+                throw GenericException("Unable to build notification payload for unidentified device type. Current supported device types are IOS and ANDROID only.");
+                break;
+        }
 	}
 	
-	const std::string &NotificationPayload::toJSON() const {
-		return jsonRepresentation;
+	const std::string &NotificationPayload::toCloudFormat() const {
+		return msgCloudRepresentation;
 	}
 	
 	std::string &NotificationPayload::soundName(){

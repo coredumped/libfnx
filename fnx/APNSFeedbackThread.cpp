@@ -231,7 +231,7 @@ namespace fnx {
 							
 							//Take tokenN and parse it back to a string
 							std::string sToken;
-							binary2DevToken(sToken, tokno);
+							ios::binary2DevToken(sToken, tokno);
 							fdbckLog << "  * Device " << sToken << " no longer has the app installed." << fnx::NL;
 							break;
 						}

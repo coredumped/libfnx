@@ -56,68 +56,40 @@ namespace fnx {
 		}
 		if(replaceHappened) theString.assign(urlEncodedString.str());
 	}
-	
-	void devToken2Binary(std::string devTokenString, std::string &binaryDevToken){
-		char buf[32];
-		char *bufptr = buf;
-		
-		for (size_t i = 0; i < devTokenString.size(); i+=8) {
-			std::string hex_s = devTokenString.substr(i, 8);
-			int unit = 0;
-			sscanf(hex_s.c_str(), "%x", &unit);
-			unit = htonl(unit);
-			memcpy(bufptr, (void *)&unit, sizeof(unsigned int));
-			bufptr += sizeof(unsigned int);
-		}
-		binaryDevToken.assign(buf, 32);
-	}
-	
-	void binary2DevToken(std::string &devToken, uint32_t binaryToken){
-		std::stringstream buf;
-		buf << std::hex;
-		buf.width(8);
-		char *data = (char *)malloc(sizeof(uint32_t));
-		memcpy(data, &binaryToken, sizeof(uint32_t));
-		for (int i = 0; i < 4; i++) {
-			int elem = data[i];
-			buf << ntohl(elem);
-		}
-		free(data);
-	}
+    
+    namespace ios {
+        void devToken2Binary(std::string devTokenString, std::string &binaryDevToken){
+            char buf[32];
+            char *bufptr = buf;
+            
+            for (size_t i = 0; i < devTokenString.size(); i+=8) {
+                std::string hex_s = devTokenString.substr(i, 8);
+                int unit = 0;
+                sscanf(hex_s.c_str(), "%x", &unit);
+                unit = htonl(unit);
+                memcpy(bufptr, (void *)&unit, sizeof(unsigned int));
+                bufptr += sizeof(unsigned int);
+            }
+            binaryDevToken.assign(buf, 32);
+        }
+        
+        void binary2DevToken(std::string &devToken, uint32_t binaryToken){
+            std::stringstream buf;
+            buf << std::hex;
+            buf.width(8);
+            char *data = (char *)malloc(sizeof(uint32_t));
+            memcpy(data, &binaryToken, sizeof(uint32_t));
+            for (int i = 0; i < 4; i++) {
+                int elem = data[i];
+                buf << ntohl(elem);
+            }
+            free(data);
+        }
+    }
 	
 	void nltrim(std::string &s){
 		if(s.size() >= 1 && s[s.size() - 1] == '\n') s = s.substr(0, s.size() - 1);
 		if(s.size() >= 1 && s[s.size() - 1] == '\r') s = s.substr(0, s.size() - 1);
-	}
-	
-	bool tableExists(sqlite3 *dbConn, const std::string &tablename){
-		std::string sqlCmd = "SELECT name FROM sqlite_master";
-		sqlite3_stmt *statement;
-		std::stringstream errmsg;
-		char *sztail;
-		int errCode = sqlite3_prepare_v2(dbConn, sqlCmd.c_str(), (int)sqlCmd.size(), &statement, (const char **)&sztail);
-		if (errCode != SQLITE_OK) {
-			errmsg << "Unable to execute query " << sqlCmd << " due to: " << sqlite3_errmsg(dbConn);
-#ifdef DEBUG
-			fnx::Log << errmsg.str() << fnx::NL;
-#endif
-			throw GenericException(errmsg.str());
-		}
-		bool gotTable = false;
-		while ((errCode = sqlite3_step(statement)) == SQLITE_ROW) {
-			char *theTable = (char *)sqlite3_column_text(statement, 0);
-			if (tablename.compare(theTable) == 0) gotTable = true;
-		}
-		if(errCode != SQLITE_DONE){
-			errmsg << "Unable to retrieve values from query: " << sqlCmd << " due to: " << sqlite3_errmsg(dbConn);
-			sqlite3_finalize(statement);
-#ifdef DEBUG
-			fnx::Log << errmsg.str() << fnx::NL;
-#endif
-			throw GenericException(errmsg.str());			
-		}
-		sqlite3_finalize(statement);
-		return gotTable;
 	}
 	
 	void splitString(std::vector<std::string> &_return, const std::string &theString, const std::string &delim){

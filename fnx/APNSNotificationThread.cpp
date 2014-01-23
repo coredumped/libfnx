@@ -449,13 +449,13 @@ namespace fnx {
 	
 	void APNSNotificationThread::notifyTo(const std::string &devToken, NotificationPayload &msg){
 		//Add some code here for god sake!!!
-		std::string jsonMsg = msg.toJSON();
+		std::string jsonMsg = msg.toCloudFormat();
 #ifdef DEBUG
 		APNSLog << "DEBUG: Sending notification " << jsonMsg << fnx::NL;
 #endif
 		if (devTokenCache.find(devToken) == devTokenCache.end()) {
 			std::string binaryDevToken;
-			devToken2Binary(devToken, binaryDevToken);
+			ios::devToken2Binary(devToken, binaryDevToken);
 			devTokenCache[devToken] = binaryDevToken;
 		}
 		sendPayload(apnsConnection, devTokenCache[devToken].c_str(), jsonMsg.c_str(), jsonMsg.size(), _useSandbox);
