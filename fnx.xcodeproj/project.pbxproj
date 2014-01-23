@@ -29,7 +29,6 @@
 		8261D6B6188F2DA2002F7CC8 /* NotificationPayload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8261D6B4188F2DA2002F7CC8 /* NotificationPayload.cpp */; };
 		8261D6B7188F2DA2002F7CC8 /* NotificationPayload.h in Headers */ = {isa = PBXBuildFile; fileRef = 8261D6B5188F2DA2002F7CC8 /* NotificationPayload.h */; };
 		8261D6B9188F2EE2002F7CC8 /* libssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8261D6B8188F2EE2002F7CC8 /* libssl.dylib */; };
-		8261D6BB188F2F1A002F7CC8 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8261D6BA188F2F1A002F7CC8 /* libsqlite3.dylib */; };
 		8261D6BD188F2F2E002F7CC8 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8261D6BC188F2F2E002F7CC8 /* libcrypto.dylib */; };
 		8261D6BF188F3813002F7CC8 /* APNSConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = 8261D6BE188F3813002F7CC8 /* APNSConstants.h */; };
 /* End PBXBuildFile section */
@@ -72,7 +71,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8261D6BD188F2F2E002F7CC8 /* libcrypto.dylib in Frameworks */,
-				8261D6BB188F2F1A002F7CC8 /* libsqlite3.dylib in Frameworks */,
 				8261D6B9188F2EE2002F7CC8 /* libssl.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

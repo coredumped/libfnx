@@ -2,7 +2,7 @@ dnl --------------------------------
 dnl Initialization macros.
 dnl --------------------------------
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.68])
 
 
 dnl --------------------------------
@@ -79,7 +79,6 @@ AC_ARG_ENABLE(debug, AC_HELP_STRING([--enable-debug                Build library
 )
 
 AC_CHECK_HEADERS([arpa/inet.h netdb.h netinet/in.h stdint.h string.h strings.h sys/socket.h unistd.h])
-AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_TYPE_UINT16_T
@@ -129,6 +128,12 @@ AC_CHECK_LIB(pthread, pthread_create, [
         AC_MSG_RESULT([ !!! Posix Threads are not supported in this platform !!! ])
         exit 1;
 ])
+
+
+dnl ----------------------------
+dnl Verify that OpenSSL exists
+dnl ----------------------------
+AC_CHECK_LIB(ssl, SSL_library_init)
 
 if test "$ENABLE_XVR2_POSIX_THREADS_SUPPORT" = "1"; then
         LIBS="$LIBS -lpthread"
