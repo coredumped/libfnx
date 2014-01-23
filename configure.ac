@@ -47,7 +47,8 @@ AC_SUBST(GENERIC_VERSION)
 VERSION=$GENERIC_VERSION
 
 #AC_INIT(fnx/APNSConstants.h)
-AC_INIT(PACKAGE, VERSION, [http://github.com/coredumped/libfnx])
+AC_INIT([PACKAGE], [VERSION], [http://github.com/coredumped/libfnx])
+AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE
 
@@ -71,7 +72,7 @@ if test "$GXX" = "yes" ; then
                         }
         ], [ echo "GCC version is >= 3" ], 
         [
-                echo "X-VR2 must be compiled with GCC versions 3.0.0 and above, please upgrade your compiler"
+                echo "libfnx must be compiled with GCC versions 3.0.0 and above, please upgrade your compiler"
                 exit 1
         ]
         )
@@ -85,13 +86,11 @@ AC_C_BIGENDIAN([
                         SYSTEM_IS_BIGENDIAN=1
                         SYSTEM_IS_LITTLEENDIAN=0
                         AC_SUBST(SYSTEM_IS_BIGENDIAN)
-                        xvr2_endianness="BIG ENDIAN"
                         echo "System architecture is big-endian"
                 ],[
                         SYSTEM_IS_LITTLEENDIAN=1
                         SYSTEM_IS_BIGENDIAN=0
                         AC_SUBST(SYSTEM_IS_LITTLEENDIAN)
-                        xvr2_endianness="LITTLE ENDIAN"
                         echo "System architecture is little-endian"
                 ],[
                         echo "Unknown architecture byte ordering"

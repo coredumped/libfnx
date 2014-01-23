@@ -12,7 +12,7 @@ cc_sources = APNSFeedbackThread.cpp APNSNotificationThread.cpp \
 library_includedir=$(includedir)/$(GENERIC_LIBRARY_NAME)
 library_include_HEADERS = $(h_sources)
 
-INCLUDES = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)
 
 lib_LTLIBRARIES=libfnx.la
 libfnx_la_SOURCES= $(h_sources) $(cc_sources)
