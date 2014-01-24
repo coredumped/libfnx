@@ -39,7 +39,7 @@
 /* Begin PBXFileReference section */
 		820CDAC118929C4800105F8B /* PendingNotificationStore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PendingNotificationStore.cpp; sourceTree = "<group>"; };
 		820CDAC218929C4800105F8B /* PendingNotificationStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PendingNotificationStore.h; sourceTree = "<group>"; };
-		82430E9117C582D00046B3E5 /* fnx.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = fnx.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		82430E9117C582D00046B3E5 /* libfnx-0.0.1.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libfnx-0.0.1.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		82430E9517C582D00046B3E5 /* fnx-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "fnx-Prefix.pch"; sourceTree = "<group>"; };
 		82430E9617C582D00046B3E5 /* fnxProj.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = fnxProj.xcconfig; sourceTree = "<group>"; };
 		82430E9717C582D00046B3E5 /* fnxTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = fnxTarget.xcconfig; sourceTree = "<group>"; };
@@ -98,7 +98,7 @@
 		82430E9217C582D00046B3E5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				82430E9117C582D00046B3E5 /* fnx.dylib */,
+				82430E9117C582D00046B3E5 /* libfnx-0.0.1.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -185,7 +185,7 @@
 			);
 			name = fnx;
 			productName = fnx;
-			productReference = 82430E9117C582D00046B3E5 /* fnx.dylib */;
+			productReference = 82430E9117C582D00046B3E5 /* libfnx-0.0.1.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -296,14 +296,15 @@
 		82430E9F17C582D00046B3E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "lib$(TARGET_NAME)-0.0.1";
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
 		};
 		82430EA017C582D00046B3E5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "lib$(TARGET_NAME)-0.0.1";
 			};
 			name = Release;
 		};
