@@ -78,6 +78,7 @@ namespace fnx {
 		_soundName = n._soundName;
 		devToken = n.devToken;
 		_badgeNumber = n._badgeNumber;
+        deviceType = n.deviceType;
 		build();
 		attempts = n.attempts;
 	}
