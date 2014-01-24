@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		820CDAC318929C4800105F8B /* PendingNotificationStore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 820CDAC118929C4800105F8B /* PendingNotificationStore.cpp */; };
+		820CDAC418929C4800105F8B /* PendingNotificationStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 820CDAC218929C4800105F8B /* PendingNotificationStore.h */; };
+		820CDAC518929ECC00105F8B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8261D6BA188F2F1A002F7CC8 /* libsqlite3.dylib */; };
 		8261D69F188F2579002F7CC8 /* APNSFeedbackThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8261D68A188F2579002F7CC8 /* APNSFeedbackThread.cpp */; };
 		8261D6A0188F2579002F7CC8 /* APNSFeedbackThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 8261D68B188F2579002F7CC8 /* APNSFeedbackThread.h */; };
 		8261D6A1188F2579002F7CC8 /* APNSNotificationThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8261D68C188F2579002F7CC8 /* APNSNotificationThread.cpp */; };
@@ -34,6 +37,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		820CDAC118929C4800105F8B /* PendingNotificationStore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PendingNotificationStore.cpp; sourceTree = "<group>"; };
+		820CDAC218929C4800105F8B /* PendingNotificationStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PendingNotificationStore.h; sourceTree = "<group>"; };
 		82430E9117C582D00046B3E5 /* fnx.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = fnx.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		82430E9517C582D00046B3E5 /* fnx-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "fnx-Prefix.pch"; sourceTree = "<group>"; };
 		82430E9617C582D00046B3E5 /* fnxProj.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = fnxProj.xcconfig; sourceTree = "<group>"; };
@@ -70,6 +75,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				820CDAC518929ECC00105F8B /* libsqlite3.dylib in Frameworks */,
 				8261D6BD188F2F2E002F7CC8 /* libcrypto.dylib in Frameworks */,
 				8261D6B9188F2EE2002F7CC8 /* libssl.dylib in Frameworks */,
 			);
@@ -100,6 +106,8 @@
 		82430E9317C582D00046B3E5 /* fnx */ = {
 			isa = PBXGroup;
 			children = (
+				820CDAC118929C4800105F8B /* PendingNotificationStore.cpp */,
+				820CDAC218929C4800105F8B /* PendingNotificationStore.h */,
 				8261D6B4188F2DA2002F7CC8 /* NotificationPayload.cpp */,
 				8261D6B5188F2DA2002F7CC8 /* NotificationPayload.h */,
 				8261D68A188F2579002F7CC8 /* APNSFeedbackThread.cpp */,
@@ -150,6 +158,7 @@
 				8261D6A2188F2579002F7CC8 /* APNSNotificationThread.h in Headers */,
 				8261D6AC188F2579002F7CC8 /* Mutex.h in Headers */,
 				8261D6B3188F2579002F7CC8 /* UtilityFunctions.h in Headers */,
+				820CDAC418929C4800105F8B /* PendingNotificationStore.h in Headers */,
 				8261D6A8188F2579002F7CC8 /* GenericThread.h in Headers */,
 				8261D6B7188F2DA2002F7CC8 /* NotificationPayload.h in Headers */,
 				8261D6BF188F3813002F7CC8 /* APNSConstants.h in Headers */,
@@ -213,6 +222,7 @@
 				8261D6B0188F2579002F7CC8 /* ThreadDispatcher.cpp in Sources */,
 				8261D69F188F2579002F7CC8 /* APNSFeedbackThread.cpp in Sources */,
 				8261D6A1188F2579002F7CC8 /* APNSNotificationThread.cpp in Sources */,
+				820CDAC318929C4800105F8B /* PendingNotificationStore.cpp in Sources */,
 				8261D6A9188F2579002F7CC8 /* MTLogger.cpp in Sources */,
 				8261D6B2188F2579002F7CC8 /* UtilityFunctions.cpp in Sources */,
 				8261D6AB188F2579002F7CC8 /* Mutex.cpp in Sources */,

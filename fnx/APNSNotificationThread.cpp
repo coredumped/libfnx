@@ -18,6 +18,7 @@
 #include "Mutex.h"
 #include "UtilityFunctions.h"
 #include "APNSConstants.h"
+#include "PendingNotificationStore.h"
 #ifndef DEVICE_BINARY_SIZE
 #define DEVICE_BINARY_SIZE 32
 #endif
@@ -39,26 +40,90 @@
 #ifndef DEFAULT_NOTIFICATION_WARMUP_TIME
 #define DEFAULT_NOTIFICATION_WARMUP_TIME 30
 #endif
+#ifndef DEFAULT_DUMMY_MODE_ENABLED
+#define DEFAULT_DUMMY_MODE_ENABLED false
+#endif
 #include <pthread.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 namespace fnx {
 	MTLogger APNSLog;
 	Mutex uuidGenM;
 	
+	namespace PushErrorCodes {
+		uint32_t NoErrorsEncountered    = 0;
+		uint32_t ProcessingError        = 1;
+		uint32_t MissingDeviceToken     = 2;
+		uint32_t MissingTopic           = 3;
+		uint32_t MissingPayload         = 4;
+		uint32_t InvalidTokenSize       = 5;
+		uint32_t InvalidTopicSize       = 6;
+		uint32_t InvalidPayloadSize     = 7;
+		uint32_t InvalidToken           = 8;
+		uint32_t NoneUnknown            = 255;
+		
+		static const char *errorString[] = {
+			"No errors encountered",
+			"Processing error",
+			"Missing device token",
+			"Missing topic",
+			"Missing payload",
+			"Invalid token size",
+			"Invalid topic size",
+			"Invalid payload size",
+			"Invalid token"
+		};
+	}
+	
 	static uint32_t _uuidCnt = 0;
 	static uint32_t msgUUIDGenerate(){
 		uint32_t newUUID = 0;
 		uuidGenM.lock();
+		if(_uuidCnt == 0) _uuidCnt = (uint32_t)time(0);
 		_uuidCnt++;
 		newUUID = _uuidCnt;
 		uuidGenM.unlock();
 		return newUUID;
 	}
-
-	static bool sendPayload(SSL *sslPtr, const char *deviceTokenBinary, const char *payloadBuff, size_t payloadLength, bool useSandbox)
+	
+	bool APNSNotificationThread::gotErrorFromApple(){
+		bool retval = false;
+		if (_socket != -1) {
+			int sslRetCode;
+			unsigned char apnsRetCode[6] = {0, 0, 0, 0, 0, 0};
+			do{
+				sslRetCode = SSL_read(apnsConnection, (void *)apnsRetCode, 6);
+			}while (sslRetCode == SSL_ERROR_WANT_READ);
+			if (sslRetCode > 0) {
+#ifdef APNS_DEBUG
+				APNSLog << "DEBUG: APNS Response: " << (int)apnsRetCode[0] << " " << (int)apnsRetCode[1] << " " << (int)apnsRetCode[2] << " " << (int)apnsRetCode[3] << " " << (int)apnsRetCode[4] << " " << (int)apnsRetCode[5] << fnx::NL;
+#endif
+				if (apnsRetCode[1] != 0) {
+					uint32_t notifID;
+					memcpy(&notifID, apnsRetCode + 2, 4);
+					std::stringstream errmsg;
+					if(apnsRetCode[1] == 0xff) APNSLog << "PANIC: Unable to post notification (id=" << (int)notifID << "), error code=" << (int)apnsRetCode[1] << fnx::NL;
+					else APNSLog << "CRITICAL: Unable to post notification (id=" << (int)notifID << "), error code=" << (int)apnsRetCode[1] << ": " << PushErrorCodes::errorString[apnsRetCode[1]] << fnx::NL;
+					PendingNotificationStore::setSentPayloadErrorCode(notifID, apnsRetCode[1]);
+					retval = true;
+					//At this point we should disconnect!!!
+					if (apnsRetCode[0] == PushErrorCodes::InvalidToken) {
+						//Retrieve failed device token from database...
+						std::string invalidToken;
+						if(PendingNotificationStore::getDeviceTokenFromMessage(invalidToken, notifID)) invalidTokens->add(invalidToken);
+						triggerSimultanousReconnect();
+					}
+					cntMessageFailed = cntMessageFailed + 1;
+				}
+			}
+		}
+		return retval;
+	}
+    
+	static bool sendPayload(SSL *sslPtr, const char *deviceTokenBinary, const char *payloadBuff, size_t payloadLength, bool useSandbox, const std::string &devTokenS)
 	{
 		bool rtn = true;
 		if (sslPtr && deviceTokenBinary && payloadBuff && payloadLength)
@@ -69,6 +134,7 @@ namespace fnx {
 			/* message format is, |COMMAND|ID|EXPIRY|TOKENLEN|TOKEN|PAYLOADLEN|PAYLOAD| */
 			char *binaryMessagePt = binaryMessageBuff;
 			uint32_t whicheverOrderIWantToGetBackInAErrorResponse_ID = msgUUIDGenerate();
+			APNSLog << "Just created a payload with ID=" << (int)whicheverOrderIWantToGetBackInAErrorResponse_ID << fnx::NL;
 			uint32_t networkOrderExpiryEpochUTC = htonl(time(NULL)+86400); // expire message if not delivered in 1 day
 			uint16_t networkOrderTokenLength = htons(DEVICE_BINARY_SIZE);
 			uint16_t networkOrderPayloadLength = htons(payloadLength);
@@ -100,39 +166,18 @@ namespace fnx {
 			memcpy(binaryMessagePt, payloadBuff, payloadLength);
 			binaryMessagePt += payloadLength;
 			int sslRetCode;
-#ifdef DEBUG
+#ifdef DEBUG_PAYLOAD_SIZE
 			APNSLog << "DEBUG: Sending " << (int)(binaryMessagePt - binaryMessageBuff) << " bytes payload..." << fnx::NL;
 #endif
-			if ((sslRetCode = SSL_write(sslPtr, binaryMessageBuff, (int)(binaryMessagePt - binaryMessageBuff))) <= 0){
-				//delete binaryMessageBuff;
-				throw SSLException(sslPtr, sslRetCode, "Unable to send push notification :-(");
+			sslRetCode = SSL_write(sslPtr, binaryMessageBuff, (int)(binaryMessagePt - binaryMessageBuff));
+			if (sslRetCode == 0) {
+				throw SSLException(sslPtr, sslRetCode, "Unable to send push notification, can't write to socket for some reason!!!");
 			}
-			//delete binaryMessageBuff;
-			if (SSL_pending(sslPtr) > 0) {
-				char apnsRetCode[6] = {0, 0, 0, 0, 0, 0};
-				do{
-					APNSLog << "There is additional data to read!!!" << fnx::NL;
-					sslRetCode = SSL_read(sslPtr, (void *)apnsRetCode, 6);
-				}while (sslRetCode == SSL_ERROR_WANT_READ || sslRetCode == SSL_ERROR_WANT_WRITE);
-				if (sslRetCode <= 0) {
-					throw SSLException(sslPtr, sslRetCode, "Unable to read response code");
-				}
-#ifdef DEBUG
-				APNSLog << "DEBUG: APNS Response: " << (int)apnsRetCode[0] << " " << (int)apnsRetCode[1] << " " << (int)apnsRetCode[2] << " " << (int)apnsRetCode[3] << " " << (int)apnsRetCode[4] << " " << (int)apnsRetCode[5] << fnx::NL; 
-#endif
-				if (apnsRetCode[1] != 0) {
-					std::stringstream errmsg;
-					errmsg << "Unable to post notification, error code=" << (int)apnsRetCode[1];
-					throw GenericException(errmsg.str());
-				}
-			}
-#ifdef DEBUG
-			APNSLog << "DEBUG: payload sent!!!" << fnx::NL;
-#endif
+			PendingNotificationStore::saveSentPayload(devTokenS, payloadBuff, whicheverOrderIWantToGetBackInAErrorResponse_ID);
 		}
 		return rtn;
 	}
-		
+    
 	void APNSNotificationThread::initSSL(){
 		if(!sslInitComplete){
 			sslCTX = SSL_CTX_new(SSLv3_method());
@@ -159,23 +204,20 @@ namespace fnx {
 #ifdef DEBUG
 			APNSLog << "Loading certificate: " << _certPath << fnx::NL;
 #endif
-#warning TODO: Verify that the certificate has not expired, if it has send a very loud panic alert
-            int retval;
-			if((retval = SSL_CTX_use_certificate_file(sslCTX, _certPath.c_str(), SSL_FILETYPE_PEM)) <= 0){
-                FILE *fp = fopen(_certPath.c_str(), "r");
-                X509 *xCert = NULL;
-                xCert = PEM_read_X509(fp, &xCert, NULL, NULL);
-
-                X509_free(xCert);
+			if(SSL_CTX_use_certificate_file(sslCTX, _certPath.c_str(), SSL_FILETYPE_PEM) <= 0){
+				ERR_print_errors_fp(stderr);
 				throw SSLException(NULL, 0, "Unable to load certificate file");
 			}
 			SSL_CTX_set_default_passwd_cb(sslCTX, (pem_password_cb *)_certPassword.c_str());
 			if (SSL_CTX_use_PrivateKey_file(sslCTX, _keyPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
+				ERR_print_errors_fp(stderr);
 				throw SSLException(NULL, 0, "Can't use given keyfile");
 			}
 			if(!SSL_CTX_check_private_key(sslCTX)){
+				ERR_print_errors_fp(stderr);
 				throw SSLException(NULL, 0, "Given private key is not valid, it does not match");
 			}
+			SSL_CTX_set_mode(sslCTX, SSL_MODE_AUTO_RETRY);
 		}
 	}
 	
@@ -184,9 +226,10 @@ namespace fnx {
 #ifdef DEBUG
 		APNSLog << "DEBUG: Connecting to APNS server..." << fnx::NL;
 #endif
-		_socket = socket (PF_INET, SOCK_STREAM, IPPROTO_TCP);       
+		_socket = socket (PF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if(_socket == -1)
 		{
+			APNSLog << "Socket creation failed :-(" << fnx::NL;
 			throw GenericException("Unable to create socket");
 		}
 		//Lets clear the _server_addr structure
@@ -202,7 +245,7 @@ namespace fnx {
 		lopt.l_onoff = 1;
 		lopt.l_linger = 1;
 		setsockopt(_socket, SOL_SOCKET, SO_LINGER, (void *)&lopt, sizeof(lopt));
-
+        
 		if(_host_info)
 		{
 			struct in_addr *address = (struct in_addr*)_host_info->h_addr_list[0];
@@ -210,20 +253,20 @@ namespace fnx {
 		}
 		else
 		{
-			throw GenericException("Can't resolver APNS server hostname");
+			APNSLog << "Unable to resolve APNS server hostname " << (_useSandbox?APPLE_SANDBOX_HOST:APPLE_HOST) << fnx::NL;
+			throw GenericException("Can't resolve APNS server hostname");
 		}
 		
-		int err = connect(_socket, (struct sockaddr*) &_server_addr, sizeof(_server_addr)); 
+		int err = connect(_socket, (struct sockaddr*) &_server_addr, sizeof(_server_addr));
 		if(err == -1)
 		{
 			throw GenericException("Can't connect to remote APNS server: client connection failed.");
-		}    
-		
+		}
 		apnsConnection = SSL_new(sslCTX);
 		if(!apnsConnection)
 		{
 			throw SSLException(NULL, 0, "Unable to create SSL connection object.");
-		}    
+		}
 		
 		SSL_set_fd(apnsConnection, _socket);
 		
@@ -233,6 +276,10 @@ namespace fnx {
 			throw SSLException(apnsConnection, err, "APNS SSL Connection");
 		}
 		APNSLog << "DEBUG: Successfully connected to APNS service" << fnx::NL;
+        
+		//Migrate the socket to blocking mode, magic is here!!!
+		int flags = fcntl(_socket, F_GETFL);
+		fcntl(_socket, F_SETFL, flags | O_NONBLOCK);
 	}
 	
 	void APNSNotificationThread::ifNotConnectedToAPNSThenConnect(){
@@ -240,23 +287,43 @@ namespace fnx {
 	}
 	
 	void APNSNotificationThread::disconnectFromAPNS(){
-		int err = SSL_shutdown(apnsConnection);
-		if(err == -1)
-		{
-			throw SSLException(apnsConnection, err, "SSL shutdown");
-		}    
+		int err;
+		int shutdownRetryCount = 0;
+		do {
+			err = SSL_shutdown(apnsConnection);
+			if (shutdownRetryCount > 20) {
+				/*if (err != 0) {
+                 throw SSLException(apnsConnection, err, "Max SSL shutdown attempts made!");
+                 }*/
+				APNSLog << "Maximum retry count reached, forcing close!!!" << fnx::NL;
+				break;
+			}
+			if(err == -1)
+			{
+				err = SSL_get_error(apnsConnection, err);
+				if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
+					err = 1;
+					usleep(2000);
+				}
+				else if(err != SSL_ERROR_SYSCALL) throw SSLException(apnsConnection, err, "SSL shutdown");
+			}
+			shutdownRetryCount++;
+#ifdef DEBUG
+			APNSLog << "WARNING: Retrying(" << shutdownRetryCount << ") SSL shutdown (err=" << err << ")..." << fnx::NL;
+#endif
+		}while (err > 1);
 		err = close(_socket);
-		if(err == -1)
-		{
-			throw GenericException("Can't close socket client APNS socket");
-		}    
-		SSL_free(apnsConnection);    
+		/*if(err == -1)
+         {
+         throw GenericException("Can't close socket client APNS socket");
+         } */
+		SSL_free(apnsConnection);
 	}
 	
 	void APNSNotificationThread::useForProduction(){
 		_useSandbox = false;
 		maxBurstPauseInterval = 1;
-		//maxNotificationsPerBurst = 64;
+		maxNotificationsPerBurst = 200;
 		fnx::APNSLog << "Setting this notification thread as a production notifier" << fnx::NL;
 	}
 	
@@ -273,10 +340,13 @@ namespace fnx {
 		maxBurstPauseInterval = DEFAULT_BURST_PAUSE_INTERVAL;
 		maxConnectionInterval = DEFAULT_MAX_CONNECTION_INTERVAL;
 		warmingUP = false;
+		cntMessageFailed = 0;
+		cntMessageSent = 0;
+		dummyMode = DEFAULT_DUMMY_MODE_ENABLED;
 	}
 	
 	APNSNotificationThread::~APNSNotificationThread(){
-		disconnectFromAPNS();
+		if(_socket != -1) disconnectFromAPNS();
 		SSL_CTX_free(sslCTX);
 	}
 	
@@ -297,7 +367,7 @@ namespace fnx {
 	static bool shouldReconnect(){
 		bool ret = false;
 		reconnectMutex.lock();
-		if(time(0) - reconnectTime < 5){ 
+		if(time(0) - reconnectTime < 5){
 			ret = true;
 			fnx::APNSLog << "A broken PIPE event was detected, waiting for APNS reconnect..." << fnx::NL;
 		}
@@ -310,11 +380,11 @@ namespace fnx {
 		reconnectTime = time(0);
 		reconnectMutex.unlock();
 	}
-	
+    
 	void APNSNotificationThread::operator()(){
 		stopExecution = false;
-#ifdef DEBUG
-		size_t i = 0;  
+#ifdef DEBUG_THREADS
+		size_t i = 0;
 #endif
 		fnx::Log << "Starting APNSNotificationThread..." << fnx::NL;
 #ifdef DEBUG
@@ -330,13 +400,13 @@ namespace fnx {
 		{
 			struct stat st;
 			if(stat("apns-logout-time.log", &st) == 0){
-				int rightNow = time(0);
-				int lastRun = time(0);
+				time_t rightNow = time(0);
+				time_t lastRun = time(0);
 				//Read file, find las execution value and wait for 5 minutes....
 				std::ifstream inf("apns-logout-time.log");
 				inf >> lastRun;
 				inf.close();
-				int deltaT = rightNow - lastRun;
+				time_t deltaT = rightNow - lastRun;
 				if (deltaT < 300) {
 					warmingUP = true;
 					APNSLog << "Warming up thread..." << fnx::NL;
@@ -346,9 +416,20 @@ namespace fnx {
 			}
 		}
 		initSSL();
-		connect2APNS();
+		while (true) {
+			try {
+				connect2APNS();
+				break;
+			} catch (GenericException &ge) {
+				APNSLog << "Unable to connect to APNS, retrying in 60s..." << fnx::NL;
+				sleep(60);
+				continue;
+			}
+		}
 		fnx::Log << "APNSNotificationThread main loop started!!!" << fnx::NL;
 		time_t start = time(NULL);
+		std::string lastDevToken;
+		std::map<std::string, time_t> lastTimeSentMap;
 		while (true) {
 			if(_useSandbox){
 				time_t currTime = time(NULL);
@@ -356,12 +437,18 @@ namespace fnx {
 					APNSLog << "Max connection time (" << (currTime - start) << " > " << maxConnectionInterval << ") reached, reconnecting..." << fnx::NL;
 					disconnectFromAPNS();
 					initSSL();
-					connect2APNS();
+					try {
+						connect2APNS();
+					} catch (GenericException &ge) {
+						APNSLog << "Unable to re-connect to APNS sandbox, retrying in a while..." << fnx::NL;
+						sleep(60);
+						continue;
+					}
 					APNSLog << "Re-connected succesfully!!!" << fnx::NL;
 					start = time(NULL);
 				}
 			}
-#ifdef DEBUG
+#ifdef DEBUG_THREADS
 			if(++i % 2400 == 0){
 				APNSLog << "DEBUG: keepalive still tickling!!!" << fnx::NL;
 			}
@@ -369,50 +456,112 @@ namespace fnx {
 			//Verify if there are any ending notifications in the notification queue
 			NotificationPayload payload;
 			int notifyCount = 0;
-			std::string lastDevToken;
+			APNSNotificationThread::gotErrorFromApple();
 			if (shouldReconnect()) {
 				disconnectFromAPNS();
 				_socket = -1;
 				sleep(DEFAULT_NOTIFICATION_WARMUP_TIME);
-				connect2APNS();
+				while (true) {
+					try {
+						connect2APNS();
+						break;
+					} catch (GenericException &ge) {
+						APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
+						sleep(60);
+					}
+				}
+			}
+			{
+				//Verify if there are any new device tokens we need to remove from the invalid token list
+				std::string devToken2Allow;
+				while (permitDeviceToken.extractEntry(devToken2Allow)) {
+					invalidTokenSet.erase(devToken2Allow);
+					APNSLog << "Removing " << devToken2Allow << " device token from the invalid token list." << fnx::NL;
+				}
 			}
 			while (notificationQueue->extractEntry(payload)) {
 				if(stopExecution == true){
 					APNSLog << "Explicit thread termination asked :-(" << fnx::NL;
 					notificationQueue->add(payload);
-					sleep(120);
+					sleep(1);
 				}
 #ifdef DEBUG
-				APNSLog << "DEBUG: There are " << (int)notificationQueue->size() << " elements in the notification queue." << fnx::NL;
+				size_t nSize = notificationQueue->size();
+				if((nSize + 1) % 20 == 0) APNSLog << "DEBUG: There are " << (int)nSize << " elements in the notification queue." << fnx::NL;
 #endif
 				//Verify here if we should notify the event or not
+				time_t rightNow;
+				rightNow = time(0);
+				std::string currentDeviceToken = payload.deviceToken();
+				if (lastTimeSentMap.find(currentDeviceToken) == lastTimeSentMap.end()) {
+					lastTimeSentMap[currentDeviceToken] = rightNow;
+				}
 				try {
+					APNSNotificationThread::gotErrorFromApple();
 					if (shouldReconnect()) {
 						disconnectFromAPNS();
 						_socket = -1;
 						warmingUP = true;
 						sleep(DEFAULT_NOTIFICATION_WARMUP_TIME);
 						warmingUP = false;
-						connect2APNS();
+						//connect2APNS();
+						while (true) {
+							try {
+								connect2APNS();
+								break;
+							} catch (GenericException &ge) {
+								APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
+								sleep(60);
+							}
+						}
 					}
-					time_t theTime;
-					time(&theTime);
-					struct tm tmTime;
-					gmtime_r(&theTime, &tmTime);		
-					if(!_useSandbox) APNSLog << "Sending notification to production service..." << fnx::NL;
-					else APNSLog << "Sending notification to APNs sandbox..." << fnx::NL;
-					if (lastDevToken.compare(payload.deviceToken()) == 0) {
-						sleep(2);
+					std::string newInvalidToken = newInvalidDevToken;
+					if (newInvalidToken.size() > 0) {
+						invalidTokenSet.insert(newInvalidToken);
+						newInvalidDevToken = "";
 					}
-					notifyTo(payload.deviceToken(), payload);
-					lastDevToken = payload.deviceToken();
-				} 
+					if (_useSandbox == false && invalidTokenSet.find(payload.deviceToken()) != invalidTokenSet.end()) {
+						APNSLog << "CRITICAL: Refusing to post notification to device " << payload.deviceToken() << " this is an invalid device token." << fnx::NL;
+						//No way to warn user that the message can't be posted because his/her device is holding an invalid token
+						//triggerSimultanousReconnect();
+					}
+					else {
+						if(_useSandbox) APNSLog << "Sending notification to APNs sandbox..." << fnx::NL;
+						if (lastDevToken.compare(payload.deviceToken()) == 0) {
+							if (rightNow - lastTimeSentMap[currentDeviceToken] < 2) {
+								APNSLog << "WARNING: Got another notification for the same device in the same thread too soon, lets try to have another thread notify it..." << fnx::NL;
+								sleep(1);
+								APNSLog << "WARNING: Sent to another thread..." << fnx::NL;
+								notificationQueue->add(payload);
+								disconnectFromAPNS();
+								sleep(1);
+								APNSLog << "WARNING: Waking up after sleeping due to repetitive messages to the same device." << fnx::NL;
+								lastDevToken = "";
+								//connect2APNS();
+								while (true) {
+									try {
+										connect2APNS();
+										break;
+									} catch (GenericException &ge) {
+										APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
+										sleep(60);
+									}
+								}
+								continue;
+							}
+						}
+						notifyTo(currentDeviceToken, payload);
+						cntMessageSent = cntMessageSent + 1;
+						lastDevToken = currentDeviceToken;
+						lastTimeSentMap[currentDeviceToken] = rightNow;
+					}
+				}
 				catch (SSLException &sse1){
 					if (sse1.errorCode() == SSL_ERROR_ZERO_RETURN) {
 						APNSLog << "CRITICAL: SSLException caught!!! errorCode=" << sse1.errorCode() << " msg=" << sse1.message() << fnx::NL;
 						//Connection close, force reconnect
-						_socket = -1;
 						disconnectFromAPNS();
+						_socket = -1;
 						sleep(waitTimeBeforeReconnectToAPNS);
 						connect2APNS();
 						notificationQueue->add(payload);
@@ -438,8 +587,20 @@ namespace fnx {
 					notificationQueue->add(payload);
 				}
 				if (++notifyCount > maxNotificationsPerBurst) {
-					APNSLog << "Too many (" << notifyCount << ") notifications in a single burst, sleeping for " << maxBurstPauseInterval << " seconds..." << fnx::NL;
-					sleep(maxBurstPauseInterval);
+					APNSLog << "Too many (" << notifyCount << ") notifications in a single burst, reconnecting..." << fnx::NL;
+					disconnectFromAPNS();
+					_socket = -1;
+					//sleep(maxBurstPauseInterval);
+					//connect2APNS();
+					while (true) {
+						try {
+							connect2APNS();
+							break;
+						} catch (GenericException &ge) {
+							APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
+							sleep(60);
+						}
+					}
 					break;
 				}
 			}
@@ -448,20 +609,21 @@ namespace fnx {
 	}
 	
 	void APNSNotificationThread::notifyTo(const std::string &devToken, NotificationPayload &msg){
-		//Add some code here for god sake!!!
 		std::string jsonMsg = msg.toCloudFormat();
-#ifdef DEBUG
+#ifdef DEBUG_FULL_MESSAGE
 		APNSLog << "DEBUG: Sending notification " << jsonMsg << fnx::NL;
+#else
+        APNSLog << "DEBUG: Sending message to device " << devToken << ": " << jsonMsg << fnx::NL;
 #endif
 		if (devTokenCache.find(devToken) == devTokenCache.end()) {
 			std::string binaryDevToken;
 			ios::devToken2Binary(devToken, binaryDevToken);
 			devTokenCache[devToken] = binaryDevToken;
 		}
-		sendPayload(apnsConnection, devTokenCache[devToken].c_str(), jsonMsg.c_str(), jsonMsg.size(), _useSandbox);
+		if(!dummyMode) sendPayload(apnsConnection, devTokenCache[devToken].c_str(), jsonMsg.c_str(), jsonMsg.size(), _useSandbox, devToken);
 	}
 	
-	SSLException::SSLException(){ 
+	SSLException::SSLException(){
 		currentOperation = SSLOperationAny;
 	}
 	
@@ -509,7 +671,7 @@ namespace fnx {
 					else {
 						char sslErrBuf[4096];
 						ERR_error_string_n(theErr, sslErrBuf, 4095);
-						errbuf << "ssl error: " << sslErrBuf;						
+						errbuf << "ssl error: " << sslErrBuf;
 					}
 				}
 			}

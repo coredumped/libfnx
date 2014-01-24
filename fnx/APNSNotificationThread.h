@@ -13,6 +13,7 @@
 #include <fnx/GenericException.h>
 #include <string>
 #include <map>
+#include <set>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -63,14 +64,19 @@ namespace fnx {
 		std::string _keyPath;
 		std::string _certPath;
 		std::string _certPassword;
-
 	protected:
 		bool sslInitComplete;
 		void initSSL();
 		void notifyTo(const std::string &devToken, NotificationPayload &msg);
+		bool gotErrorFromApple();
 	public:
+		bool dummyMode;
 		AtomicFlag warmingUP;
+		std::set<std::string> invalidTokenSet;
 		SharedQueue<NotificationPayload> *notificationQueue;
+		SharedQueue<std::string> *invalidTokens;
+		SharedQueue<std::string> permitDeviceToken;
+		AtomicVar<std::string> newInvalidDevToken;
 		APNSNotificationThread();
 		void setKeyPath(const std::string &keyPath);
 		void setCertPath(const std::string &certPath);
@@ -82,7 +88,23 @@ namespace fnx {
 		void triggerSimultanousReconnect();
 		
 		AtomicFlag stopExecution;
+		//Stat counters
+		AtomicVar<int> cntMessageSent;
+		AtomicVar<int> cntMessageFailed;
 	};
+	
+	namespace PushErrorCodes {
+		extern uint32_t NoErrorsEncountered;
+		extern uint32_t ProcessingError;
+		extern uint32_t MissingDeviceToken;
+		extern uint32_t MissingTopic;
+		extern uint32_t MissingPayload;
+		extern uint32_t InvalidTokenSize;
+		extern uint32_t InvalidTopicSize;
+		extern uint32_t InvalidPayloadSize;
+		extern uint32_t InvalidToken;
+		extern uint32_t NoneUnknown;
+	}
 	
 }
 #endif

@@ -1,12 +1,12 @@
 h_sources = APNSConstants.h APNSFeedbackThread.h APNSNotificationThread.h \
 	GenericException.h GenericThread.h MTLogger.h Mutex.h \
 	NotificationPayload.h SharedQueue.h SharedVector.h \
-	ThreadDispatcher.h UtilityFunctions.h
+	ThreadDispatcher.h UtilityFunctions.h PendingNotificationStore.h
 
 cc_sources = APNSFeedbackThread.cpp APNSNotificationThread.cpp \
 	GenericException.cpp GenericThread.cpp MTLogger.cpp Mutex.cpp \
 	NotificationPayload.cpp SharedQueue.cpp ThreadDispatcher.cpp \
-	UtilityFunctions.cpp
+	UtilityFunctions.cpp PendingNotificationStore.cpp
 
 
 #library_includedir=$(includedir)/@PACKAGE_NAME@

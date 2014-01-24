@@ -9,6 +9,7 @@
 #define fnx_UtilityFunctions_h
 #include <string>
 #include <vector>
+#include <sqlite3.h>
 #ifdef __linux__
 #include <stdint.h>
 #endif
@@ -30,6 +31,7 @@ namespace fnx {
 	void nltrim(std::string &s);
 	
 	void splitString(std::vector<std::string> &_return, const std::string &theString, const std::string &delim);
+    bool tableExists(sqlite3 *dbConn, const std::string &tablename);
 }
 
 #endif

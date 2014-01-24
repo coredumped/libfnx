@@ -41,6 +41,7 @@ namespace fnx {
 		std::string &deviceToken();
 		int badge();
 		int attempts;
+        DeviceType devType();
 	};
 }
 

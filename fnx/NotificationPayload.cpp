@@ -163,4 +163,8 @@ namespace fnx {
 	int NotificationPayload::badge(){
 		return _badgeNumber;
 	}
+    
+    NotificationPayload::DeviceType NotificationPayload::devType() {
+        return deviceType;
+    }
 }

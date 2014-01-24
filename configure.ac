@@ -133,7 +133,10 @@ AC_CHECK_LIB(pthread, pthread_create, [
 dnl ----------------------------
 dnl Verify that OpenSSL exists
 dnl ----------------------------
-AC_CHECK_LIB(ssl, SSL_library_init)
+AC_CHECK_LIB(ssl, SSL_library_init, [], [
+	AC_MSG_RESULT([ !!! OpenSSL must be installed to continue, please install it first !!! ])
+	exit 1;
+])
 
 if test "$ENABLE_XVR2_POSIX_THREADS_SUPPORT" = "1"; then
         LIBS="$LIBS -lpthread"
@@ -143,12 +146,13 @@ fi
 dnl --------------------------------------------------------------
 dnl Verify that SQLite development files are already installed
 dnl --------------------------------------------------------------
-#FNX_SQLITE_ENABLED=yes
-#
-#AC_CHECK_HEADERS(sqlite3.h, [
-#        FNX_SQLITE_ENABLED=yes
-#        LIBS="$LIBS -lsqlite3"
-#])
+AC_CHECK_HEADERS(sqlite3.h, [
+        FNX_SQLITE_ENABLED=yes
+        LIBS="$LIBS -lsqlite3"
+],[
+	AC_MSG_RESULT([ !!! SQLite library is not present, please install it first !!! ])
+	exit 1;
+])
 
 dnl -----------------------------------------------
 dnl Generates Makefile's, configuration files and scripts
