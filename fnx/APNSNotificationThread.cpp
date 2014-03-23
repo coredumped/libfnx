@@ -312,11 +312,7 @@ namespace fnx {
 			APNSLog << "WARNING: Retrying(" << shutdownRetryCount << ") SSL shutdown (err=" << err << ")..." << fnx::NL;
 #endif
 		}while (err > 1);
-		err = close(_socket);
-		/*if(err == -1)
-         {
-         throw GenericException("Can't close socket client APNS socket");
-         } */
+		close(_socket);
 		SSL_free(apnsConnection);
 	}
 	
