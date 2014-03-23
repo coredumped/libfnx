@@ -7,10 +7,10 @@
 
 #ifndef fnx_APNSFeedbackThread_h
 #define fnx_APNSFeedbackThread_h
-#include "GenericThread.h"
-#include "APNSNotificationThread.h"
-#include "SharedVector.h"
-#include "MTLogger.h"
+#include <fnx/GenericThread.h>
+#include <fnx/APNSNotificationThread.h>
+#include <fnx/SharedVector.h>
+#include <fnx/MTLogger.h>
 #include <set>
 
 namespace fnx {
