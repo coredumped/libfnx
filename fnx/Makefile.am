@@ -1,12 +1,14 @@
 h_sources = APNSConstants.h APNSFeedbackThread.h APNSNotificationThread.h \
 	GenericException.h GenericThread.h MTLogger.h Mutex.h \
 	NotificationPayload.h SharedQueue.h SharedVector.h \
-	ThreadDispatcher.h UtilityFunctions.h PendingNotificationStore.h
+	ThreadDispatcher.h UtilityFunctions.h PendingNotificationStore.h \
+	RWLock.h SharedSet.h SharedMap.h Atomic.h
 
 cc_sources = APNSFeedbackThread.cpp APNSNotificationThread.cpp \
 	GenericException.cpp GenericThread.cpp MTLogger.cpp Mutex.cpp \
 	NotificationPayload.cpp SharedQueue.cpp ThreadDispatcher.cpp \
-	UtilityFunctions.cpp PendingNotificationStore.cpp
+	UtilityFunctions.cpp PendingNotificationStore.cpp \
+	RWLock.cpp Atomic.cpp
 
 
 #library_includedir=$(includedir)/@PACKAGE_NAME@

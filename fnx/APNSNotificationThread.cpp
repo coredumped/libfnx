@@ -609,6 +609,10 @@ namespace fnx {
 	}
 	
 	void APNSNotificationThread::notifyTo(const std::string &devToken, NotificationPayload &msg){
+        if(devToken.size() == 0){
+            APNSLog << "PANIC: A message: " << msg.message() << " was scheduled for notification to a device with an empty device token? WTF!!!" << fnx::NL;
+            return;
+        }
 		std::string jsonMsg = msg.toCloudFormat();
 #ifdef DEBUG_FULL_MESSAGE
 		APNSLog << "DEBUG: Sending notification " << jsonMsg << fnx::NL;

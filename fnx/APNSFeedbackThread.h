@@ -42,6 +42,7 @@ namespace fnx {
 		~APNSFeedbackThread();
 		void operator()();
 		void useForProduction();
+        int checkInterval;
 		
 		static void invalidTokens(std::set<std::string> &devTokens);
 		static bool isTokenInvalid(const std::string &devToken);

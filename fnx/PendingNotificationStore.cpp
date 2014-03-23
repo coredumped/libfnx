@@ -1,6 +1,5 @@
 //
 //  PendingNotificationStore.cpp
-//  PMM Sucker
 //
 //  Created by Juan Guerrero on 4/17/12.
 //  Copyright (c) 2012 fn(x) Software. All rights reserved.

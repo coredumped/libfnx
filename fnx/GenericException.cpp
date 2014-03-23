@@ -10,16 +10,24 @@
 
 namespace fnx {
 	
-	GenericException::GenericException(){
-		
-	}
-	
-	GenericException::GenericException(const std::string &_errmsg){
-		errmsg = _errmsg;
-	}
-	
-	std::string GenericException::message(){
-		return std::string(errmsg);
-	}
-
+    GenericException::GenericException(){
+        
+    }
+    
+    GenericException::GenericException(const std::string &_errmsg){
+        errmsg = _errmsg;
+    }
+    
+    std::string GenericException::message(){
+        return std::string(errmsg);
+    }
+    
+    HTTPException::HTTPException(){ }
+    HTTPException::HTTPException(int _code, const std::string &_msg){
+        code = _code;
+        msg = _msg;
+    }
+    int HTTPException::errorCode(){ return code; }
+    std::string HTTPException::errorMessage(){ return std::string(msg); }
+    
 }

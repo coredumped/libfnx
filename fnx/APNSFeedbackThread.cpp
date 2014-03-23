@@ -11,6 +11,7 @@
 #include "openssl/err.h"
 #include <netdb.h>
 #include <cerrno>
+#include <unistd.h>
 #include "APNSFeedbackThread.h"
 #include "Mutex.h"
 #include "UtilityFunctions.h"
@@ -18,7 +19,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/stat.h>
-#include <unistd.h>
+#include <fcntl.h>
 #ifndef DEVICE_BINARY_SIZE
 #define DEVICE_BINARY_SIZE 32
 #endif
@@ -37,17 +38,21 @@
 #ifndef APNS_ITEM_BYTE_SIZE
 #define APNS_ITEM_BYTE_SIZE 38
 #endif
+#ifndef DEFAULT_FEEDBACK_CHECK_INTERVAL
+#define DEFAULT_FEEDBACK_CHECK_INTERVAL 3600
+#endif
 
 namespace fnx {
 	MTLogger fdbckLog;
-		
+	
 	void APNSFeedbackThread::initSSL(){
 		if(!sslInitComplete){
 			sslCTX = SSL_CTX_new(SSLv3_method());
 			if(!sslCTX){
 				//Fatal error, stop daemon, notify pmm service inmediately so it can release all e-mail
 				//accounts from this pmm sucker inmediatelly
-				std::cerr << "Unable to create SSL context" << std::endl;
+				std::cerr << "Unable to create SSL context: ";
+				ERR_print_errors_fp(stderr);
 				fdbckLog << "Can't create SSL context, aborting application!!!" << fnx::NL;
 				abort();
 			}
@@ -135,6 +140,8 @@ namespace fnx {
 			throw SSLException(apnsConnection, err, "APNS SSL Connection");
 		}
 		fdbckLog << "DEBUG: Successfully connected to APNS service" << fnx::NL;
+		int flags = fcntl(_socket, F_GETFL);
+		fcntl(_socket, F_SETFL, flags | O_NONBLOCK);
 	}
 	
 	void APNSFeedbackThread::ifNotConnectedToAPNSThenConnect(){
@@ -153,11 +160,12 @@ namespace fnx {
 			throw GenericException("Can't close socket client APNS socket");
 		}    
 		SSL_free(apnsConnection);    
+		fdbckLog << "Disconnected from APNS feedback" << fnx::NL;
 	}
 	
 	void APNSFeedbackThread::useForProduction(){
 		_useSandbox = false;
-		fnx::fdbckLog << "Setting this notification thread as a production notifier" << fnx::NL;
+		fdbckLog << "Setting this notification thread as a production notifier" << fnx::NL;
 	}
 	
 	APNSFeedbackThread::APNSFeedbackThread(){
@@ -168,6 +176,7 @@ namespace fnx {
 #else
 		_useSandbox = false;
 #endif
+		checkInterval = DEFAULT_FEEDBACK_CHECK_INTERVAL;
 	}
 	
 	APNSFeedbackThread::~APNSFeedbackThread(){
@@ -205,47 +214,58 @@ namespace fnx {
 			//Verify if there are any ending notifications in the notification queue
 			fdbckLog << "Retrieving device tokens..." << fnx::NL;
 			initSSL();
-			connect2APNS();
+			try {
+				connect2APNS();
+			} catch (GenericException &ge1) {
+				APNSLog << "Unable to re-connect to APNS sandbox, retrying in a while..." << fnx::NL;
+				sleep(300);
+				continue;
+			}
 			itM.lock();
 			__invalidTokens.clear();
+			itM.unlock();
 			//Read remote data here
-			int bytes2read = 0;
-			while ((bytes2read = SSL_pending(apnsConnection)) > 0) {
-				if (bytes2read >= APNS_ITEM_BYTE_SIZE) {
-					char binaryTuple[APNS_ITEM_BYTE_SIZE];
-					while (true) {
-						int rRet = SSL_read(apnsConnection, binaryTuple, APNS_ITEM_BYTE_SIZE);
-						if(rRet > 0){
-							//Here we parse;
-							uint32_t timeno;
-							uint16_t tleno;
-							uint32_t tokno;
-							char *binaryPtr = binaryTuple;
-							memcpy(&timeno, binaryPtr, sizeof(uint32_t));
-							binaryPtr += sizeof(uint32_t);
-							memcpy(&tleno, binaryPtr, sizeof(uint16_t));
-							binaryPtr += sizeof(uint16_t);
-							memcpy(&tokno, binaryPtr, sizeof(uint32_t));
-							//time_t timestamp = ntohl(timeno);
-							//uint16_t tlen = ntohs(tleno);
-							
-							//Take tokenN and parse it back to a string
-							std::string sToken;
-							ios::binary2DevToken(sToken, tokno);
-							fdbckLog << "  * Device " << sToken << " no longer has the app installed." << fnx::NL;
-							break;
+			fdbckLog << "Trying to read data from feedback service..." << fnx::NL;
+			int secsElapsed = 1;
+			while (true) {
+				char binaryTuple[APNS_ITEM_BYTE_SIZE];
+				int rRet = SSL_read(apnsConnection, binaryTuple, APNS_ITEM_BYTE_SIZE);
+				if(rRet > 0){
+					//Here we parse;
+					uint32_t timeno;
+					uint16_t tleno;
+					uint32_t tokno;
+					char *binaryPtr = binaryTuple;
+					memcpy(&timeno, binaryPtr, sizeof(uint32_t));
+					binaryPtr += sizeof(uint32_t);
+					memcpy(&tleno, binaryPtr, sizeof(uint16_t));
+					binaryPtr += sizeof(uint16_t);
+					memcpy(&tokno, binaryPtr, sizeof(uint32_t));
+					//time_t timestamp = ntohl(timeno);
+					//uint16_t tlen = ntohs(tleno);
+					
+					//Take tokenN and parse it back to a string
+					std::string sToken;
+					ios::binary2DevToken(sToken, tokno);
+					fdbckLog << "  * Device " << sToken << " no longer has the app installed." << fnx::NL;
+				}
+				else {
+					int ssl_error_code = SSL_get_error(apnsConnection, rRet);
+					if(ssl_error_code != SSL_ERROR_WANT_READ){
+						if(ssl_error_code == SSL_ERROR_ZERO_RETURN){
+							fdbckLog << "No more data to read, the server just closed our connection." << fnx::NL;
 						}
 						else {
-							int ssl_error_code = SSL_get_error(apnsConnection, rRet);
-							if(ssl_error_code != SSL_ERROR_WANT_READ){
-								fdbckLog << "Unable to read data from feedback service: ssl_code=" << ssl_error_code << fnx::NL;
-								break;
-							}
+							fdbckLog << "Unable to read data from feedback service: ssl_code=" << ssl_error_code << fnx::NL;
+							ERR_print_errors_fp(stderr);
 						}
+						break;
 					}
 				}
+				sleep(1);
+				secsElapsed += 1;
+				if(secsElapsed > 120) break;
 			}
-			itM.unlock();
 			disconnectFromAPNS();
 			sleep(600);
 		}
@@ -266,5 +286,5 @@ namespace fnx {
 		itM.unlock();
 		return isValid;
 	}
-
+	
 }

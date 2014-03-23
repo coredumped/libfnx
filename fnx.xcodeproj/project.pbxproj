@@ -34,6 +34,12 @@
 		8261D6B9188F2EE2002F7CC8 /* libssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8261D6B8188F2EE2002F7CC8 /* libssl.dylib */; };
 		8261D6BD188F2F2E002F7CC8 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8261D6BC188F2F2E002F7CC8 /* libcrypto.dylib */; };
 		8261D6BF188F3813002F7CC8 /* APNSConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = 8261D6BE188F3813002F7CC8 /* APNSConstants.h */; };
+		82A178FF18DEAD0100D5FB16 /* Atomic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 82A178FB18DEAD0100D5FB16 /* Atomic.cpp */; };
+		82A1790018DEAD0100D5FB16 /* Atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FC18DEAD0100D5FB16 /* Atomic.h */; };
+		82A1790118DEAD0100D5FB16 /* SharedMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FD18DEAD0100D5FB16 /* SharedMap.h */; };
+		82A1790218DEAD0100D5FB16 /* SharedSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FE18DEAD0100D5FB16 /* SharedSet.h */; };
+		82D940B118DEA90E00DB959D /* RWLock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 82D940AF18DEA90E00DB959D /* RWLock.cpp */; };
+		82D940B218DEA90E00DB959D /* RWLock.h in Headers */ = {isa = PBXBuildFile; fileRef = 82D940B018DEA90E00DB959D /* RWLock.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +74,12 @@
 		8261D6BA188F2F1A002F7CC8 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		8261D6BC188F2F2E002F7CC8 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
 		8261D6BE188F3813002F7CC8 /* APNSConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APNSConstants.h; sourceTree = "<group>"; };
+		82A178FB18DEAD0100D5FB16 /* Atomic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Atomic.cpp; sourceTree = "<group>"; };
+		82A178FC18DEAD0100D5FB16 /* Atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
+		82A178FD18DEAD0100D5FB16 /* SharedMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedMap.h; sourceTree = "<group>"; };
+		82A178FE18DEAD0100D5FB16 /* SharedSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedSet.h; sourceTree = "<group>"; };
+		82D940AF18DEA90E00DB959D /* RWLock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RWLock.cpp; sourceTree = "<group>"; };
+		82D940B018DEA90E00DB959D /* RWLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RWLock.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,8 +118,14 @@
 		82430E9317C582D00046B3E5 /* fnx */ = {
 			isa = PBXGroup;
 			children = (
+				82A178FB18DEAD0100D5FB16 /* Atomic.cpp */,
+				82A178FC18DEAD0100D5FB16 /* Atomic.h */,
+				82A178FD18DEAD0100D5FB16 /* SharedMap.h */,
+				82A178FE18DEAD0100D5FB16 /* SharedSet.h */,
 				820CDAC118929C4800105F8B /* PendingNotificationStore.cpp */,
 				820CDAC218929C4800105F8B /* PendingNotificationStore.h */,
+				82D940AF18DEA90E00DB959D /* RWLock.cpp */,
+				82D940B018DEA90E00DB959D /* RWLock.h */,
 				8261D6B4188F2DA2002F7CC8 /* NotificationPayload.cpp */,
 				8261D6B5188F2DA2002F7CC8 /* NotificationPayload.h */,
 				8261D68A188F2579002F7CC8 /* APNSFeedbackThread.cpp */,
@@ -158,12 +176,16 @@
 				8261D6A2188F2579002F7CC8 /* APNSNotificationThread.h in Headers */,
 				8261D6AC188F2579002F7CC8 /* Mutex.h in Headers */,
 				8261D6B3188F2579002F7CC8 /* UtilityFunctions.h in Headers */,
+				82A1790118DEAD0100D5FB16 /* SharedMap.h in Headers */,
+				82A1790218DEAD0100D5FB16 /* SharedSet.h in Headers */,
 				820CDAC418929C4800105F8B /* PendingNotificationStore.h in Headers */,
 				8261D6A8188F2579002F7CC8 /* GenericThread.h in Headers */,
 				8261D6B7188F2DA2002F7CC8 /* NotificationPayload.h in Headers */,
 				8261D6BF188F3813002F7CC8 /* APNSConstants.h in Headers */,
 				8261D6AF188F2579002F7CC8 /* SharedVector.h in Headers */,
 				8261D6AA188F2579002F7CC8 /* MTLogger.h in Headers */,
+				82D940B218DEA90E00DB959D /* RWLock.h in Headers */,
+				82A1790018DEAD0100D5FB16 /* Atomic.h in Headers */,
 				8261D6AE188F2579002F7CC8 /* SharedQueue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -228,6 +250,8 @@
 				8261D6AB188F2579002F7CC8 /* Mutex.cpp in Sources */,
 				8261D6A5188F2579002F7CC8 /* GenericException.cpp in Sources */,
 				8261D6B6188F2DA2002F7CC8 /* NotificationPayload.cpp in Sources */,
+				82A178FF18DEAD0100D5FB16 /* Atomic.cpp in Sources */,
+				82D940B118DEA90E00DB959D /* RWLock.cpp in Sources */,
 				8261D6AD188F2579002F7CC8 /* SharedQueue.cpp in Sources */,
 				8261D6A7188F2579002F7CC8 /* GenericThread.cpp in Sources */,
 			);
@@ -296,15 +320,19 @@
 		82430E9F17C582D00046B3E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				PRODUCT_NAME = "lib$(TARGET_NAME)-0.0.1";
 				STRIP_INSTALLED_PRODUCT = NO;
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)";
 			};
 			name = Debug;
 		};
 		82430EA017C582D00046B3E5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				PRODUCT_NAME = "lib$(TARGET_NAME)-0.0.1";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)";
 			};
 			name = Release;
 		};
