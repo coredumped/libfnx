@@ -7,6 +7,7 @@
 
 #ifndef fnx_GenericThread_h
 #define fnx_GenericThread_h
+#include <fnx/fnxconfig.h>
 #include<fnx/Mutex.h>
 #include<fnx/Atomic.h>
 #include<string>

@@ -38,6 +38,7 @@
 		82A1790018DEAD0100D5FB16 /* Atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FC18DEAD0100D5FB16 /* Atomic.h */; };
 		82A1790118DEAD0100D5FB16 /* SharedMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FD18DEAD0100D5FB16 /* SharedMap.h */; };
 		82A1790218DEAD0100D5FB16 /* SharedSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FE18DEAD0100D5FB16 /* SharedSet.h */; };
+		82A1790418E0894700D5FB16 /* fnxconfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A1790318E0894700D5FB16 /* fnxconfig.h */; };
 		82D940B118DEA90E00DB959D /* RWLock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 82D940AF18DEA90E00DB959D /* RWLock.cpp */; };
 		82D940B218DEA90E00DB959D /* RWLock.h in Headers */ = {isa = PBXBuildFile; fileRef = 82D940B018DEA90E00DB959D /* RWLock.h */; };
 /* End PBXBuildFile section */
@@ -78,6 +79,7 @@
 		82A178FC18DEAD0100D5FB16 /* Atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
 		82A178FD18DEAD0100D5FB16 /* SharedMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedMap.h; sourceTree = "<group>"; };
 		82A178FE18DEAD0100D5FB16 /* SharedSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedSet.h; sourceTree = "<group>"; };
+		82A1790318E0894700D5FB16 /* fnxconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fnxconfig.h; sourceTree = "<group>"; };
 		82D940AF18DEA90E00DB959D /* RWLock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RWLock.cpp; sourceTree = "<group>"; };
 		82D940B018DEA90E00DB959D /* RWLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RWLock.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -118,6 +120,7 @@
 		82430E9317C582D00046B3E5 /* fnx */ = {
 			isa = PBXGroup;
 			children = (
+				82A1790318E0894700D5FB16 /* fnxconfig.h */,
 				82A178FB18DEAD0100D5FB16 /* Atomic.cpp */,
 				82A178FC18DEAD0100D5FB16 /* Atomic.h */,
 				82A178FD18DEAD0100D5FB16 /* SharedMap.h */,
@@ -171,6 +174,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8261D6A6188F2579002F7CC8 /* GenericException.h in Headers */,
+				82A1790418E0894700D5FB16 /* fnxconfig.h in Headers */,
 				8261D6B1188F2579002F7CC8 /* ThreadDispatcher.h in Headers */,
 				8261D6A0188F2579002F7CC8 /* APNSFeedbackThread.h in Headers */,
 				8261D6A2188F2579002F7CC8 /* APNSNotificationThread.h in Headers */,
@@ -321,6 +325,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"USE_RWLOCK=1",
+					"DEBUG=1",
+				);
 				PRODUCT_NAME = "lib$(TARGET_NAME)-0.0.1";
 				STRIP_INSTALLED_PRODUCT = NO;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)";
@@ -331,6 +339,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "USE_RWLOCK=1";
 				PRODUCT_NAME = "lib$(TARGET_NAME)-0.0.1";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)";
 			};

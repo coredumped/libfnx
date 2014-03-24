@@ -9,12 +9,15 @@
 #define fnx_Sucker_RWLock_h
 #include <pthread.h>
 #include <fnx/GenericException.h>
+#include <fnx/fnxconfig.h>
 
 namespace fnx {
 	
 	class RWLock {
 	private:
+#ifdef USE_RWLOCK
 		pthread_rwlock_t theLock;
+#endif
 	protected:
 	public:
 		RWLock();

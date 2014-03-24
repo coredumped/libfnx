@@ -8,6 +8,7 @@
 #ifndef fnx_NotificationPayload_h
 #define fnx_NotificationPayload_h
 #include<string>
+#include <fnx/fnxconfig.h>
 
 namespace fnx {
 	class NotificationPayload {

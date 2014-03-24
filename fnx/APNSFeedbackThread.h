@@ -7,6 +7,7 @@
 
 #ifndef fnx_APNSFeedbackThread_h
 #define fnx_APNSFeedbackThread_h
+#include <fnx/fnxconfig.h>
 #include <fnx/GenericThread.h>
 #include <fnx/APNSNotificationThread.h>
 #include <fnx/SharedVector.h>

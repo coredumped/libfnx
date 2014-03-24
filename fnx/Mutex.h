@@ -8,6 +8,7 @@
 #ifndef fnx_Mutex_h
 #define fnx_Mutex_h
 #include <pthread.h>
+#include <fnx/fnxconfig.h>
 #include <fnx/GenericException.h>
 namespace fnx {
     //Encapsulates a POSIX threads mutual exclusion device

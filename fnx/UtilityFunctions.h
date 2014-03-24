@@ -13,6 +13,7 @@
 #ifdef __linux__
 #include <stdint.h>
 #endif
+#include <fnx/fnxconfig.h>
 
 namespace fnx {
     

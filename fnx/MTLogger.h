@@ -7,7 +7,8 @@
 
 #ifndef fnx_MTLogger_h
 #define fnx_MTLogger_h
-#include"Mutex.h"
+#include <fnx/fnxconfig.h>
+#include <fnx/Mutex.h>
 #include <string>
 #include <sstream>
 #include <map>

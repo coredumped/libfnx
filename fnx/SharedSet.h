@@ -9,6 +9,7 @@
 #define fnx_Sucker_SharedSet_h
 #include <set>
 #include <string>
+#include <fnx/fnxconfig.h>
 #include <fnx/Mutex.h>
 #include <fnx/RWLock.h>
 #include <fnx/MTLogger.h>

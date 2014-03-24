@@ -10,7 +10,7 @@ dnl Package name and version number
 dnl --------------------------------
 AC_INIT(fnx, 0.0.1, [http://github.com/coredumped/libfnx])
 AC_CONFIG_MACRO_DIR([m4])
-AM_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(fnx/fnxconfig.h)
 AM_INIT_AUTOMAKE
 #AC_SUBST(GENERIC_LIBRARY_VERSION)
 
@@ -115,6 +115,7 @@ AC_CHECK_LIB(pthread, pthread_create, [
                         threads_library="POSIX Threads (pthreads)"
                         ENABLE_FNX_POSIX_THREADS_SUPPORT=1
                         AC_SUBST(ENABLE_FNX_POSIX_THREADS_SUPPORT)
+			AC_DEFINE([USE_RWLOCK], [1], [Enables POSIX threads read-write lock support])
                 ],[
                         AC_MSG_RESULT([ !!! Posix Threads are not supported in this platform !!! ])
                         exit 1;

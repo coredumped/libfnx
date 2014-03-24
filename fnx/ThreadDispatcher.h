@@ -8,7 +8,8 @@
 #ifndef fnx_ThreadDispatcher_h
 #define fnx_ThreadDispatcher_h
 #include <string>
-#include"GenericThread.h"
+#include <fnx/fnxconfig.h>
+#include <fnx/GenericThread.h>
 
 namespace fnx {
 	class ThreadDispatcher {

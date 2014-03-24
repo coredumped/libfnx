@@ -7,6 +7,7 @@
 
 #ifndef fnx_Sucker_Atomic_h
 #define fnx_Sucker_Atomic_h
+#include <fnx/fnxconfig.h>
 #include <fnx/Mutex.h>
 #include <fnx/RWLock.h>
 

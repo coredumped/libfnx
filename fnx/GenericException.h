@@ -8,6 +8,7 @@
 #ifndef fnx_GenericException_h
 #define fnx_GenericException_h
 #include <string>
+#include <fnx/fnxconfig.h>
 
 namespace fnx {
 	

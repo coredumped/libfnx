@@ -7,6 +7,7 @@
 
 #ifndef fnx_Sucker_SharedMap_h
 #define fnx_Sucker_SharedMap_h
+#include <fnx/fnxconfig.h>
 #include <fnx/RWLock.h>
 #include <fnx/Mutex.h>
 

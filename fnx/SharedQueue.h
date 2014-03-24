@@ -7,8 +7,9 @@
 
 #ifndef fnx_SharedQueue_h
 #define fnx_SharedQueue_h
-#include "Mutex.h"
-#include "MTLogger.h"
+#include <fnx/fnxconfig.h>
+#include <fnx/Mutex.h>
+#include <fnx/MTLogger.h>
 #include <string>
 #include <vector>
 #include <queue>

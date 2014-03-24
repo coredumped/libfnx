@@ -8,6 +8,7 @@
 #ifndef fnx_PendingNotificationStore_h
 #define fnx_PendingNotificationStore_h
 #include <inttypes.h>
+#include <fnx/fnxconfig.h>
 #include <fnx/SharedQueue.h>
 #include <fnx/NotificationPayload.h>
 

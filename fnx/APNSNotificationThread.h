@@ -7,6 +7,7 @@
 
 #ifndef fnx_APNSNotificationThread_h
 #define fnx_APNSNotificationThread_h
+#include <fnx/fnxconfig.h>
 #include <fnx/GenericThread.h>
 #include <fnx/SharedQueue.h>
 #include <fnx/NotificationPayload.h>
