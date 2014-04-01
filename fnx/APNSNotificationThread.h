@@ -85,6 +85,7 @@ namespace fnx {
 		~APNSNotificationThread();
 		void operator()();
 		void useForProduction();
+        void useForDevelopment();
 		
 		void triggerSimultanousReconnect();
 		

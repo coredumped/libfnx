@@ -322,6 +322,11 @@ namespace fnx {
 		maxNotificationsPerBurst = 200;
 		fnx::APNSLog << "Setting this notification thread as a production notifier" << fnx::NL;
 	}
+    
+    void APNSNotificationThread::useForDevelopment() {
+        _useSandbox = true;
+        fnx::APNSLog << "Setting this notification thread as development notifier" << fnx::NL;
+    }
 	
 	APNSNotificationThread::APNSNotificationThread(){
 		sslInitComplete = false;
