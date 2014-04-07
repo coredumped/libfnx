@@ -58,13 +58,14 @@ namespace fnx {
         deviceType = devType;
 		build();
 	}
-	
+    
 	NotificationPayload::NotificationPayload(const NotificationPayload &n){
 		msg = n.msg;
 		_soundName = n._soundName;
 		devToken = n.devToken;
 		_badgeNumber = n._badgeNumber;
         deviceType = n.deviceType;
+        metadata = n.metadata;
 		build();
 		attempts = n.attempts;
 	}
@@ -84,6 +85,11 @@ namespace fnx {
 		jsonbuilder << "\"sound\":\"" << _soundName << "\"";
 		if(_badgeNumber > 0) jsonbuilder << ",\"badge\":" << _badgeNumber;
 		jsonbuilder << "}";
+        //Begin metadata insert
+        for (std::map<std::string, std::string>::iterator iter = metadata.begin(); iter != metadata.end(); iter++) {
+            jsonbuilder << ",\"" << iter->first << "\":\"" << iter->second << "\"";
+        }
+        //End metadata insert
 		jsonbuilder << "}";
 		if (jsonbuilder.str().size() > MAXPAYLOAD_SIZE) {
 			jsonbuilder.str(std::string());
@@ -103,6 +109,11 @@ namespace fnx {
 			jsonbuilder << "\"sound\":\"" << _soundName << "\"";
 			if(_badgeNumber > 0) jsonbuilder << ",\"badge\":" << _badgeNumber;
 			jsonbuilder << "}";
+            //Begin metadata insert
+            for (std::map<std::string, std::string>::iterator iter = metadata.begin(); iter != metadata.end(); iter++) {
+                jsonbuilder << ",\"" << iter->first << "\":\"" << iter->second << "\"";
+            }
+            //End metadata insert
 			jsonbuilder << "}";
 		}
 		msgCloudRepresentation = jsonbuilder.str();
@@ -153,5 +164,10 @@ namespace fnx {
     
     NotificationPayload::DeviceType NotificationPayload::devType() {
         return deviceType;
+    }
+    
+    void NotificationPayload::setMetadata(const std::map<std::string, std::string> &meta) {
+        metadata = meta;
+        build();
     }
 }
