@@ -65,6 +65,7 @@ namespace fnx {
 		std::string _keyPath;
 		std::string _certPath;
 		std::string _certPassword;
+        void refreshConnectionSafely();
 	protected:
 		bool sslInitComplete;
 		void initSSL();

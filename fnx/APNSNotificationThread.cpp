@@ -344,6 +344,7 @@ namespace fnx {
 		cntMessageFailed = 0;
 		cntMessageSent = 0;
 		dummyMode = DEFAULT_DUMMY_MODE_ENABLED;
+        invalidTokens = NULL;
 	}
 	
 	APNSNotificationThread::~APNSNotificationThread(){
@@ -397,6 +398,9 @@ namespace fnx {
 		if(pthread_sigmask(SIG_BLOCK, &bSignal, NULL) != 0){
 			APNSLog << "WARNING: Unable to block SIGPIPE, if a persistent APNS connection is cut unexpectedly we might crash!!!" << fnx::NL;
 		}
+        if (invalidTokens == NULL) {
+            APNSLog << "WARNING: No invalid tokens queue has been defined, if you send a notification to an invalid device token then you're running the risk for the notification thread to crash the application" << fnx::NL;
+        }
 		//Verify if connect delay is needed
 		{
 			struct stat st;
@@ -429,6 +433,7 @@ namespace fnx {
 		}
 		fnx::Log << "APNSNotificationThread main loop started!!!" << fnx::NL;
 		time_t start = time(NULL);
+        time_t lastMessageSentTime = start;
 		std::string lastDevToken;
 		std::map<std::string, time_t> lastTimeSentMap;
 		while (true) {
@@ -497,24 +502,15 @@ namespace fnx {
 				if (lastTimeSentMap.find(currentDeviceToken) == lastTimeSentMap.end()) {
 					lastTimeSentMap[currentDeviceToken] = rightNow;
 				}
+                //If the connection has not sent a message for a long period of time, then we should refresh the connection in case the APNS servers have already dropped it.
+                if (rightNow - lastMessageSentTime > maxConnectionInterval) {
+                    refreshConnectionSafely();
+                    lastMessageSentTime = rightNow;
+                }
 				try {
 					APNSNotificationThread::gotErrorFromApple();
 					if (shouldReconnect()) {
-						disconnectFromAPNS();
-						_socket = -1;
-						warmingUP = true;
-						sleep(DEFAULT_NOTIFICATION_WARMUP_TIME);
-						warmingUP = false;
-						//connect2APNS();
-						while (true) {
-							try {
-								connect2APNS();
-								break;
-							} catch (GenericException &ge) {
-								APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
-								sleep(60);
-							}
-						}
+                        refreshConnectionSafely();
 					}
 					std::string newInvalidToken = newInvalidDevToken;
 					if (newInvalidToken.size() > 0) {
@@ -555,6 +551,7 @@ namespace fnx {
 						cntMessageSent = cntMessageSent + 1;
 						lastDevToken = currentDeviceToken;
 						lastTimeSentMap[currentDeviceToken] = rightNow;
+                        lastMessageSentTime = rightNow;
 					}
 				}
 				catch (SSLException &sse1){
@@ -589,7 +586,8 @@ namespace fnx {
 				}
 				if (++notifyCount > maxNotificationsPerBurst) {
 					APNSLog << "Too many (" << notifyCount << ") notifications in a single burst, reconnecting..." << fnx::NL;
-					disconnectFromAPNS();
+                    refreshConnectionSafely();
+					/*disconnectFromAPNS();
 					_socket = -1;
 					//sleep(maxBurstPauseInterval);
 					//connect2APNS();
@@ -601,13 +599,30 @@ namespace fnx {
 							APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
 							sleep(60);
 						}
-					}
+					}*/
 					break;
 				}
 			}
 			usleep(250000);
 		}
 	}
+    
+    void APNSNotificationThread::refreshConnectionSafely() {
+        disconnectFromAPNS();
+        _socket = -1;
+        warmingUP = true;
+        sleep(DEFAULT_NOTIFICATION_WARMUP_TIME);
+        warmingUP = false;
+        while (true) {
+            try {
+                connect2APNS();
+                break;
+            } catch (GenericException &ge) {
+                APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
+                sleep(60);
+            }
+        }
+    }
 	
 	void APNSNotificationThread::notifyTo(const std::string &devToken, NotificationPayload &msg){
         if(devToken.size() == 0){
