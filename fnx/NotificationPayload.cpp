@@ -100,12 +100,13 @@ namespace fnx {
 			if(_badgeNumber > 0) jsonbuilder << ",\"badge\":" << _badgeNumber;
 			jsonbuilder << "}";
 			jsonbuilder << "}";
+            
 			size_t maxMsgLength = jsonbuilder.str().size() - 3;
 			jsonbuilder.str(std::string());
 			jsonbuilder << "{";
 			jsonbuilder << "\"aps\":";
 			jsonbuilder << "{";
-			jsonbuilder << "\"alert\":\"" << encodedMsg.substr(0, maxMsgLength) << "...\",";
+			jsonbuilder << "\"alert\":\"" << encodedMsg.substr(0, 252 - maxMsgLength) << "...\",";
 			jsonbuilder << "\"sound\":\"" << _soundName << "\"";
 			if(_badgeNumber > 0) jsonbuilder << ",\"badge\":" << _badgeNumber;
 			jsonbuilder << "}";
