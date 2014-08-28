@@ -63,6 +63,7 @@ namespace fnx {
 		uint32_t InvalidTopicSize       = 6;
 		uint32_t InvalidPayloadSize     = 7;
 		uint32_t InvalidToken           = 8;
+        uint32_t APNSWasShutdown        = 10;
 		uint32_t NoneUnknown            = 255;
 		
 		static const char *errorString[] = {
@@ -74,7 +75,9 @@ namespace fnx {
 			"Invalid token size",
 			"Invalid topic size",
 			"Invalid payload size",
-			"Invalid token"
+			"Invalid token",
+            "error non-existent / not documented",
+            "apns server connection was shutdown a while ago, resent all pending notifications!!!"
 		};
 	}
 	
@@ -96,21 +99,36 @@ namespace fnx {
 			unsigned char apnsRetCode[6] = {0, 0, 0, 0, 0, 0};
 			do{
 				sslRetCode = SSL_read(apnsConnection, (void *)apnsRetCode, 6);
+                if(sslRetCode <= 0) sslRetCode = SSL_get_error(apnsConnection, sslRetCode);
+                else break;
 			}while (sslRetCode == SSL_ERROR_WANT_READ);
 			if (sslRetCode > 0) {
 #ifdef APNS_DEBUG
 				APNSLog << "DEBUG: APNS Response: " << (int)apnsRetCode[0] << " " << (int)apnsRetCode[1] << " " << (int)apnsRetCode[2] << " " << (int)apnsRetCode[3] << " " << (int)apnsRetCode[4] << " " << (int)apnsRetCode[5] << fnx::NL;
 #endif
 				if (apnsRetCode[1] != 0) {
+                    uint32_t apnsErrorCode = (uint32_t)apnsRetCode[1];
 					uint32_t notifID;
 					memcpy(&notifID, apnsRetCode + 2, 4);
 					std::stringstream errmsg;
-					if(apnsRetCode[1] == 0xff) APNSLog << "PANIC: Unable to post notification (id=" << (int)notifID << "), error code=" << (int)apnsRetCode[1] << fnx::NL;
-					else APNSLog << "CRITICAL: Unable to post notification (id=" << (int)notifID << "), error code=" << (int)apnsRetCode[1] << ": " << PushErrorCodes::errorString[apnsRetCode[1]] << fnx::NL;
-					PendingNotificationStore::setSentPayloadErrorCode(notifID, apnsRetCode[1]);
+					if(apnsRetCode[1] == 0xff) APNSLog << "PANIC: Unable to post notification (id=" << (int)notifID << "), error code=" << (int)apnsErrorCode << fnx::NL;
+					else APNSLog << "CRITICAL: Unable to post notification (id=" << (int)notifID << "), error code=" << (int)apnsErrorCode << ": " << PushErrorCodes::errorString[apnsRetCode[1]] << fnx::NL;
+                    if (apnsErrorCode == PushErrorCodes::APNSWasShutdown) {
+
+                        SharedQueue<CookedPayload> cq;
+                        PendingNotificationStore::loadSentPayloadsSince(&cq, notifID);
+                        CookedPayload payload;
+                        while (cq.extractEntry(payload)) {
+                            APNSLog << "NOTICE: Re-sending pending message after shutdown status was received..." << fnx::NL;
+                            notifyTo(payload);
+                        }
+                    }
+                    else {
+                        PendingNotificationStore::setSentPayloadErrorCode(notifID, apnsRetCode[1]);
+                    }
 					retval = true;
 					//At this point we should disconnect!!!
-					if (apnsRetCode[0] == PushErrorCodes::InvalidToken) {
+					if (apnsErrorCode == PushErrorCodes::InvalidToken) {
 						//Retrieve failed device token from database...
 						std::string invalidToken;
 						if(PendingNotificationStore::getDeviceTokenFromMessage(invalidToken, notifID)) invalidTokens->add(invalidToken);
@@ -642,6 +660,24 @@ namespace fnx {
 		}
 		if(!dummyMode) sendPayload(apnsConnection, devTokenCache[devToken].c_str(), jsonMsg.c_str(), jsonMsg.size(), _useSandbox, devToken);
 	}
+    
+    void APNSNotificationThread::notifyTo(fnx::CookedPayload &msg) {
+        if(msg.devToken.size() == 0){
+            APNSLog << "PANIC: A message: " << msg.jsonPayload << " was scheduled for resending to a device with an empty device token? WTF!!!" << fnx::NL;
+            return;
+        }
+#ifdef DEBUG_FULL_MESSAGE
+        APNSLog << "DEBUG: Sending notification " << msg.jsonPayload << fnx::NL;
+#else
+        APNSLog << "DEBUG: Sending message to device " << msg.devToken << ": " << msg.jsonPayload << fnx::NL;
+#endif
+        if (devTokenCache.find(msg.devToken) == devTokenCache.end()) {
+            std::string binaryDevToken;
+            ios::devToken2Binary(msg.devToken, binaryDevToken);
+            devTokenCache[msg.devToken] = binaryDevToken;
+        }
+        if(!dummyMode) sendPayload(apnsConnection, devTokenCache[msg.devToken].c_str(), msg.jsonPayload.c_str(), msg.jsonPayload.size(), _useSandbox, msg.devToken);
+    }
 	
 	SSLException::SSLException(){
 		currentOperation = SSLOperationAny;

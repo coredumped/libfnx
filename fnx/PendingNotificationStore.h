@@ -11,6 +11,7 @@
 #include <fnx/fnxconfig.h>
 #include <fnx/SharedQueue.h>
 #include <fnx/NotificationPayload.h>
+#include <fnx/CookedPayload.h>
 
 namespace fnx {
 	class PendingNotificationStore {
@@ -27,6 +28,8 @@ namespace fnx {
 		static void setSentPayloadErrorCode(uint32_t _id, int errorCode);
 		static void eraseOldPayloads();
 		static bool getDeviceTokenFromMessage(std::string &devToken, uint32_t _id);
+        
+        static void loadSentPayloadsSince(SharedQueue<CookedPayload> *nQueue, uint32_t _start_id);
 	};
 }
 

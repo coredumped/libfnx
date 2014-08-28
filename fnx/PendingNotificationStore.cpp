@@ -68,7 +68,8 @@ namespace fnx {
 			createCmd << "devtoken	TEXT,";
 			createCmd << "message	TEXT,";
 			createCmd << "tstamp	INTEGER,";
-			createCmd << "errorcode	INTEGER";
+			createCmd << "errorcode	INTEGER,";
+            createCmd << "devtype	INTEGER";
 			createCmd << ")";
 			if(sqlite3_exec(qDB, createCmd.str().c_str(), 0, 0, &errmsg) != SQLITE_OK){
 				fnx::Log << "Unable to create pending notifications table: " << errmsg << fnx::NL;
@@ -163,8 +164,8 @@ namespace fnx {
 				const char *tok = (const char *)sqlite3_column_text(statement, 0);
 				const char *msg = (const char *)sqlite3_column_text(statement, 1);
 				const char *snd = (const char *)sqlite3_column_text(statement, 2);
-                int devtype = sqlite3_column_int(statement, 3);
 				int badge = sqlite3_column_int(statement, 3);
+                int devtype = sqlite3_column_int(statement, 4);
 				fnx::Log << " * Loading notification for device: " << tok << fnx::NL;
 				NotificationPayload payload((NotificationPayload::DeviceType)devtype, tok, msg, badge, snd);
 				nQueue->add(payload);
@@ -183,4 +184,27 @@ namespace fnx {
 			fnx::Log << "Unable to add notification payload to persistent queue(" << delCmd.str() << "): " << errmsg << fnx::NL;
 		}
 	}
+    
+    void PendingNotificationStore::loadSentPayloadsSince(SharedQueue<CookedPayload> *nQueue, uint32_t _start_id) {
+        if(sDB == NULL) sDB = connect2NotifDB();
+        std::stringstream sqlCmd;
+        sqlite3_stmt *statement;
+        char *szTail;
+        sqlCmd << "SELECT devtoken,message,devtype FROM " << sentTable << " WHERE id>=" << _start_id;
+        if(sqlite3_prepare_v2(sDB, sqlCmd.str().c_str(), (int)sqlCmd.str().size(), &statement, (const char **)&szTail) == SQLITE_OK){
+            while (sqlite3_step(statement) == SQLITE_ROW) {
+                const char *tok = (const char *)sqlite3_column_text(statement, 0);
+                const char *msg = (const char *)sqlite3_column_text(statement, 1);
+                int devtype = sqlite3_column_int(statement, 2);
+                fnx::Log << " * Resending notification to device: " << tok << fnx::NL;
+                CookedPayload payload((NotificationPayload::DeviceType)devtype, tok, msg);
+                nQueue->add(payload);
+            }
+            sqlite3_finalize(statement);
+        }
+        else {
+            const char *errmsg = sqlite3_errmsg(sDB);
+            fnx::Log << "Unable to retrieve notification payloads from last crash or app shutdown (" << sqlCmd.str() << ") due to: " << errmsg << fnx::NL;
+        }
+    }
 }

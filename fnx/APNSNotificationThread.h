@@ -21,7 +21,7 @@
 #include <arpa/inet.h>
 #include <openssl/ssl.h>
 #include <fnx/MTLogger.h>
-
+#include <fnx/CookedPayload.h>
 
 
 namespace fnx {
@@ -70,6 +70,7 @@ namespace fnx {
 		bool sslInitComplete;
 		void initSSL();
 		void notifyTo(const std::string &devToken, NotificationPayload &msg);
+        void notifyTo(CookedPayload &msg);
 		bool gotErrorFromApple();
 	public:
 		bool dummyMode;

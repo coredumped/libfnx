@@ -5,34 +5,34 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>60CC5C6F-0360-46D4-89FB-6C5F61B7BFD5</string>
+	<string>443CE6C0-62A2-447E-93BD-6B1453A68405</string>
 	<key>IDESourceControlProjectName</key>
 	<string>fnx</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>198F00CF-E93A-42EF-AACF-C3B63F55C2D2</key>
+		<key>FB0D103CF7D39BD9E31B9532DE2A69779FFAC8DE</key>
 		<string>https://github.com/coredumped/libfnx.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>fnx.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>198F00CF-E93A-42EF-AACF-C3B63F55C2D2</key>
+		<key>FB0D103CF7D39BD9E31B9532DE2A69779FFAC8DE</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/coredumped/libfnx.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>198F00CF-E93A-42EF-AACF-C3B63F55C2D2</string>
+	<string>FB0D103CF7D39BD9E31B9532DE2A69779FFAC8DE</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>198F00CF-E93A-42EF-AACF-C3B63F55C2D2</string>
+			<string>FB0D103CF7D39BD9E31B9532DE2A69779FFAC8DE</string>
 			<key>IDESourceControlWCCName</key>
 			<string>libfnx</string>
 		</dict>

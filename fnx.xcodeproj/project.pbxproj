@@ -39,6 +39,8 @@
 		82A1790118DEAD0100D5FB16 /* SharedMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FD18DEAD0100D5FB16 /* SharedMap.h */; };
 		82A1790218DEAD0100D5FB16 /* SharedSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A178FE18DEAD0100D5FB16 /* SharedSet.h */; };
 		82A1790418E0894700D5FB16 /* fnxconfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A1790318E0894700D5FB16 /* fnxconfig.h */; };
+		82A5598F19AEA01200547E39 /* CookedPayload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 82A5598D19AEA01200547E39 /* CookedPayload.cpp */; };
+		82A5599019AEA01200547E39 /* CookedPayload.h in Headers */ = {isa = PBXBuildFile; fileRef = 82A5598E19AEA01200547E39 /* CookedPayload.h */; };
 		82D940B118DEA90E00DB959D /* RWLock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 82D940AF18DEA90E00DB959D /* RWLock.cpp */; };
 		82D940B218DEA90E00DB959D /* RWLock.h in Headers */ = {isa = PBXBuildFile; fileRef = 82D940B018DEA90E00DB959D /* RWLock.h */; };
 /* End PBXBuildFile section */
@@ -80,6 +82,8 @@
 		82A178FD18DEAD0100D5FB16 /* SharedMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedMap.h; sourceTree = "<group>"; };
 		82A178FE18DEAD0100D5FB16 /* SharedSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedSet.h; sourceTree = "<group>"; };
 		82A1790318E0894700D5FB16 /* fnxconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fnxconfig.h; sourceTree = "<group>"; };
+		82A5598D19AEA01200547E39 /* CookedPayload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CookedPayload.cpp; sourceTree = "<group>"; };
+		82A5598E19AEA01200547E39 /* CookedPayload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CookedPayload.h; sourceTree = "<group>"; };
 		82D940AF18DEA90E00DB959D /* RWLock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RWLock.cpp; sourceTree = "<group>"; };
 		82D940B018DEA90E00DB959D /* RWLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RWLock.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -131,6 +135,8 @@
 				82D940B018DEA90E00DB959D /* RWLock.h */,
 				8261D6B4188F2DA2002F7CC8 /* NotificationPayload.cpp */,
 				8261D6B5188F2DA2002F7CC8 /* NotificationPayload.h */,
+				82A5598D19AEA01200547E39 /* CookedPayload.cpp */,
+				82A5598E19AEA01200547E39 /* CookedPayload.h */,
 				8261D68A188F2579002F7CC8 /* APNSFeedbackThread.cpp */,
 				8261D68B188F2579002F7CC8 /* APNSFeedbackThread.h */,
 				8261D68C188F2579002F7CC8 /* APNSNotificationThread.cpp */,
@@ -174,6 +180,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8261D6A6188F2579002F7CC8 /* GenericException.h in Headers */,
+				82A5599019AEA01200547E39 /* CookedPayload.h in Headers */,
 				82A1790418E0894700D5FB16 /* fnxconfig.h in Headers */,
 				8261D6B1188F2579002F7CC8 /* ThreadDispatcher.h in Headers */,
 				8261D6A0188F2579002F7CC8 /* APNSFeedbackThread.h in Headers */,
@@ -256,6 +263,7 @@
 				8261D6B6188F2DA2002F7CC8 /* NotificationPayload.cpp in Sources */,
 				82A178FF18DEAD0100D5FB16 /* Atomic.cpp in Sources */,
 				82D940B118DEA90E00DB959D /* RWLock.cpp in Sources */,
+				82A5598F19AEA01200547E39 /* CookedPayload.cpp in Sources */,
 				8261D6AD188F2579002F7CC8 /* SharedQueue.cpp in Sources */,
 				8261D6A7188F2579002F7CC8 /* GenericThread.cpp in Sources */,
 			);
