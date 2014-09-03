@@ -301,10 +301,10 @@ namespace fnx {
     }
     
     void APNSNotificationThread::disconnectFromAPNS(){
-        int err;
+        int ret;
         int shutdownRetryCount = 0;
         do {
-            err = SSL_shutdown(apnsConnection);
+            ret = SSL_shutdown(apnsConnection);
             if (shutdownRetryCount > 20) {
                 /*if (err != 0) {
                  throw SSLException(apnsConnection, err, "Max SSL shutdown attempts made!");
@@ -312,20 +312,20 @@ namespace fnx {
                 APNSLog << "Maximum retry count reached, forcing close!!!" << fnx::NL;
                 break;
             }
-            if(err == -1)
+            if(ret == -1)
             {
-                err = SSL_get_error(apnsConnection, err);
-                if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
-                    err = 1;
+                int sslerr = SSL_get_error(apnsConnection, ret);
+                if (sslerr == SSL_ERROR_WANT_READ || sslerr == SSL_ERROR_WANT_WRITE) {
+                    ret = 0;
                     usleep(2000);
                 }
-                else if(err != SSL_ERROR_SYSCALL) throw SSLException(apnsConnection, err, "SSL shutdown");
+                else if(sslerr != SSL_ERROR_SYSCALL) throw SSLException(apnsConnection, ret, "SSL shutdown");
             }
             shutdownRetryCount++;
 #ifdef DEBUG
-            APNSLog << "WARNING: Retrying(" << shutdownRetryCount << ") SSL shutdown (err=" << err << ")..." << fnx::NL;
+            APNSLog << "WARNING: Retrying(" << shutdownRetryCount << ") SSL shutdown (err=" << ret << ")..." << fnx::NL;
 #endif
-        }while (err > 1);
+        }while (ret == 0);
         close(_socket);
         SSL_free(apnsConnection);
     }
@@ -603,19 +603,6 @@ namespace fnx {
                 if (++notifyCount > maxNotificationsPerBurst) {
                     APNSLog << "Too many (" << notifyCount << ") notifications in a single burst, reconnecting..." << fnx::NL;
                     refreshConnectionSafely();
-                    /*disconnectFromAPNS();
-                     _socket = -1;
-                     //sleep(maxBurstPauseInterval);
-                     //connect2APNS();
-                     while (true) {
-                     try {
-                     connect2APNS();
-                     break;
-                     } catch (GenericException &ge) {
-                     APNSLog << "Unable to reconnect to APNS, re-trying in 60 seconds..." << fnx::NL;
-                     sleep(60);
-                     }
-                     }*/
                     break;
                 }
             }
@@ -730,6 +717,9 @@ namespace fnx {
                 }
             }
             errmsg = errbuf.str();
+#ifndef HIDE_SSL_EXCEPTION_DUMPING
+            APNSLog << "SSLException caught: "  << errmsg << fnx::NL;
+#endif
         }
     }
     
