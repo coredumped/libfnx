@@ -1,5 +1,7 @@
 # fn(x) C++ Wrappers Classes
 
+[![Join the chat at https://gitter.im/coredumped/libfnx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/coredumped/libfnx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Provides a set of usable classes that will allow you to create programs that are easily portable between Linux and Mac. These set of classes where originally intended to be used as a foundation for [PushMeMail's](https://itunes.apple.com/us/app/push-me-mail/id449511589?ls=1&mt=8) e-mail poller daemons.
 
 ## Features
