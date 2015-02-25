@@ -129,7 +129,7 @@ am__objects_2 = APNSFeedbackThread.lo APNSNotificationThread.lo \
 	GenericException.lo GenericThread.lo MTLogger.lo Mutex.lo \
 	NotificationPayload.lo SharedQueue.lo ThreadDispatcher.lo \
 	UtilityFunctions.lo PendingNotificationStore.lo RWLock.lo \
-	Atomic.lo
+	Atomic.lo CookedPayload.lo
 am_libfnx_la_OBJECTS = $(am__objects_1) $(am__objects_2)
 libfnx_la_OBJECTS = $(am_libfnx_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -347,13 +347,14 @@ h_sources = APNSConstants.h APNSFeedbackThread.h APNSNotificationThread.h \
 	GenericException.h GenericThread.h MTLogger.h Mutex.h \
 	NotificationPayload.h SharedQueue.h SharedVector.h \
 	ThreadDispatcher.h UtilityFunctions.h PendingNotificationStore.h \
-	RWLock.h SharedSet.h SharedMap.h Atomic.h fnxconfig.h
+	RWLock.h SharedSet.h SharedMap.h Atomic.h fnxconfig.h \
+	CookedPayload.h
 
 cc_sources = APNSFeedbackThread.cpp APNSNotificationThread.cpp \
 	GenericException.cpp GenericThread.cpp MTLogger.cpp Mutex.cpp \
 	NotificationPayload.cpp SharedQueue.cpp ThreadDispatcher.cpp \
 	UtilityFunctions.cpp PendingNotificationStore.cpp \
-	RWLock.cpp Atomic.cpp
+	RWLock.cpp Atomic.cpp CookedPayload.cpp
 
 
 #library_includedir=$(includedir)/@PACKAGE_NAME@
@@ -461,6 +462,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/APNSFeedbackThread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/APNSNotificationThread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Atomic.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CookedPayload.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GenericException.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GenericThread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MTLogger.Plo@am__quote@
