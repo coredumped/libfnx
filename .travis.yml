@@ -15,6 +15,9 @@ branches:
     - master
     - /^v\d+\./
 
+script:
+    - ./configure && make
+
 notifications:
   email: false
   webhooks:
